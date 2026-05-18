@@ -1,0 +1,938 @@
+--- Parsed JT808 Message ---
+Time: 2026-05-18T16:57:00.942Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 50
+Body Length: 70
+Body Hex: 00 00 00 00 00 0C 08 00 01 76 F0 2E 02 C6 57 0E 00 00 00 00 00 00 26 05 19 00 57 00 01 04 00 00 02 84 30 01 19 31 01 1B 9F 14 34 32 30 2C 31 2C 31 45 35 32 2C 36 41 36 43 31 30 33 2C 30 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.57195
+Longitude: 46.552846
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 00:57:00
+Positioned: NO
+Alarm: 0x00000000
+Status: 0x000c0800
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T16:57:23.062Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 51
+Body Length: 70
+Body Hex: 00 00 00 00 00 0C 08 00 01 76 F0 2E 02 C6 57 0E 00 00 00 00 00 00 26 05 19 00 57 20 01 04 00 00 02 84 30 01 19 31 01 00 9F 14 34 32 30 2C 31 2C 31 45 35 32 2C 36 41 36 43 31 30 33 2C 30 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.57195
+Longitude: 46.552846
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 00:57:20
+Positioned: NO
+Alarm: 0x00000000
+Status: 0x000c0800
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T16:57:41.066Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 52
+Body Length: 70
+Body Hex: 00 00 00 00 00 0C 08 00 01 76 F0 2E 02 C6 57 0E 00 00 00 00 00 00 26 05 19 00 57 40 01 04 00 00 02 84 30 01 19 31 01 1B 9F 14 34 32 30 2C 31 2C 31 45 35 32 2C 36 41 36 43 31 30 33 2C 30 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.57195
+Longitude: 46.552846
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 00:57:40
+Positioned: NO
+Alarm: 0x00000000
+Status: 0x000c0800
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T16:58:00.981Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 53
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 03 09 00 12 00 00 26 05 19 00 58 00 01 04 00 00 02 84 30 01 19 31 01 1A 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude:  
+Altitude: 777m
+Speed: 1.8 km/h
+Direction: 0°
+GPS Time: 2026/05/19 00:58:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T16:58:07.772Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 54
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T16:58:23.052Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 55
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 03 09 00 00 00 00 26 05 19 00 58 20 01 04 00 00 02 84 30 01 18 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 777m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 00:58:20
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T16:58:41.009Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 56
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 03 09 00 00 00 00 26 05 19 00 58 40 01 04 00 00 02 84 30 01 18 31 01 1A 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 777m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 00:58:40
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T16:59:01.034Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 57
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 03 09 00 00 00 00 26 05 19 00 59 00 01 04 00 00 02 84 30 01 18 31 01 1A 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 777m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 00:59:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T16:59:21.007Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 58
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 03 09 00 00 00 00 26 05 19 00 59 20 01 04 00 00 02 84 30 01 18 31 01 1A 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 777m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 00:59:20
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T16:59:42.000Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 59
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 03 09 00 00 00 00 26 05 19 00 59 40 01 04 00 00 02 84 30 01 18 31 01 1A 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 777m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 00:59:40
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:00:04.892Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 60
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 00 00 01 04 00 00 02 84 30 01 18 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:00:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:01:09.543Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 61
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:04:10.980Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 62
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:05:08.718Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 63
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 05 00 01 04 00 00 02 84 30 01 19 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:05:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:07:12.871Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 64
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:10:02.893Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 65
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 10 00 01 04 00 00 02 84 30 01 18 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:10:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:10:14.653Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 66
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:13:16.009Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 67
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:15:02.355Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 68
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 15 00 01 04 00 00 02 84 30 01 19 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:15:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:16:17.534Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 69
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:19:18.692Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 70
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:20:10.993Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 71
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 20 00 01 04 00 00 02 84 30 01 19 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:20:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:22:20.272Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 72
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:25:03.758Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 73
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 25 00 01 04 00 00 02 84 30 01 19 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:25:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:25:21.998Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 74
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:28:23.662Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 75
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:30:03.846Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 76
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 30 00 01 04 00 00 02 84 30 01 19 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:30:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:31:25.652Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 77
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:34:27.417Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 78
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:35:14.026Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 79
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 35 00 01 04 00 00 02 84 30 01 19 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:35:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:37:28.662Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 80
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:40:03.865Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 81
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 40 00 01 04 00 00 02 84 30 01 1B 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:40:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:40:36.386Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 82
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:43:38.579Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 83
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:45:03.517Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 84
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 45 00 01 04 00 00 02 84 30 01 1B 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:45:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:46:39.612Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 85
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:49:41.031Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 86
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:50:17.737Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 87
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 50 00 01 04 00 00 02 84 30 01 1A 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:50:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:52:42.405Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 88
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:55:02.336Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 89
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 01 55 00 01 04 00 00 02 84 30 01 1A 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 01:55:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:55:44.188Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 90
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T17:58:45.351Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 91
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:00:04.533Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 92
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 02 00 00 01 04 00 00 02 84 30 01 1A 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 02:00:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:01:46.517Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 93
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:04:48.036Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 94
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:05:17.177Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 95
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 02 05 00 01 04 00 00 02 84 30 01 1A 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 02:05:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:07:49.299Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 96
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:10:04.781Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 97
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 02 10 00 01 04 00 00 02 84 30 01 1A 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 02:10:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:10:51.045Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 98
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:13:52.780Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 99
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:15:03.656Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 100
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 02 15 00 01 04 00 00 02 84 30 01 1B 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 02:15:00
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:16:54.642Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 101
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:18:22.292Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 102
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 00 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 02 18 20 01 04 00 00 02 84 30 01 1B 31 01 16 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 02:18:20
+Positioned: NO
+Alarm: 0x00000000
+Status: 0x000c0800
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:18:42.685Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 103
+Body Length: 70
+Body Hex: 00 00 00 00 00 0C 08 00 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 02 18 40 01 04 00 00 02 84 30 01 1B 31 01 14 9F 14 34 32 30 2C 31 2C 31 45 35 32 2C 36 41 36 43 31 30 33 2C 30 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 02:18:40
+Positioned: NO
+Alarm: 0x00000000
+Status: 0x000c0800
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:19:00.742Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 104
+Body Length: 70
+Body Hex: 00 00 00 00 00 0C 08 00 01 76 F0 E8 02 C6 56 BE 00 00 00 00 00 00 26 05 19 02 19 00 01 04 00 00 02 84 30 01 1B 31 01 00 9F 14 34 32 30 2C 31 2C 31 45 35 32 2C 36 41 36 43 31 30 42 2C 30 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572136
+Longitude: 46.552766
+Altitude: 0m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 02:19:00
+Positioned: NO
+Alarm: 0x00000000
+Status: 0x000c0800
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:19:20.746Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 105
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 98 02 C6 56 E6 03 17 00 00 00 00 26 05 19 02 19 20 01 04 00 00 02 84 30 01 1B 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572056
+Longitude: 46.552806
+Altitude: 791m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 02:19:20
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:19:40.739Z
+From: 93.168.217.4:1974
+Message: Location Report (0x0200)
+Phone/ID: 019176335600
+Serial: 106
+Body Length: 48
+Body Hex: 00 00 00 00 00 0C 08 02 01 76 F0 98 02 C6 56 E6 03 17 00 00 00 00 26 05 19 02 19 40 01 04 00 00 02 84 30 01 19 31 01 00 82 02 00 00 EA 02 00 01
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.572056
+Longitude: 46.552806
+Altitude: 791m
+Speed: 0 km/h
+Direction: 0°
+GPS Time: 2026/05/19 02:19:40
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x000c0802
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-05-18T18:19:55.700Z
+From: 93.168.217.4:1974
+Message: Terminal Heartbeat (0x0002)
+Phone/ID: 019176335600
+Serial: 107
+Body Length: 0
+Body Hex: 
+Checksum: VALID
+Action: Sending Heartbeat Response
+-----------------------------
