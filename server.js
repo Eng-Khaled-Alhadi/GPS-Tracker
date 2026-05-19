@@ -1,10 +1,63 @@
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
+const WebSocket = require('ws');
 
 const PORT = 8000;
 const LOG_FILE = path.join(__dirname, 'log.txt');
 const PARSED_LOG = path.join(__dirname, 'parsed_log.txt');
+
+// Keep track of all active devices and their latest location
+const activeDevices = {};
+
+// Create dummy HTTP server to handle WebSocket handshakes
+const httpServer = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('JT808 GPS Webhook Gateway\n');
+});
+
+// Create WebSocket server for app clients (no standalone port)
+const wss = new WebSocket.Server({ noServer: true });
+
+wss.on('connection', (ws, req) => {
+    const clientIp = req.socket.remoteAddress;
+    console.log(`[${new Date().toISOString()}] WebSocket client connected from ${clientIp}`);
+
+    // Send the current active state of all devices immediately upon connection
+    ws.send(JSON.stringify({
+        type: 'devices_state',
+        data: Object.values(activeDevices)
+    }));
+
+    ws.on('close', () => {
+        console.log(`[${new Date().toISOString()}] WebSocket client disconnected: ${clientIp}`);
+    });
+
+    ws.on('error', (err) => {
+        console.error(`[${new Date().toISOString()}] WebSocket error for ${clientIp}:`, err.message);
+    });
+});
+
+// Pass HTTP upgrade requests to the WebSocket server
+httpServer.on('upgrade', (req, socket, head) => {
+    wss.handleUpgrade(req, socket, head, (ws) => {
+        wss.emit('connection', ws, req);
+    });
+});
+
+// Broadcast parsed location data to all connected WebSocket clients
+function broadcastLocation(deviceData) {
+    const message = JSON.stringify({
+        type: 'location_update',
+        data: deviceData
+    });
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(message);
+        }
+    });
+}
 
 // Ensure log files exist
 if (!fs.existsSync(LOG_FILE)) fs.writeFileSync(LOG_FILE, '', 'utf8');
@@ -227,13 +280,11 @@ function hexDump(buf) {
 
 let serverSerial = 0; // Server-side message serial counter
 
-const server = net.createServer((socket) => {
+// Handle raw JT808 TCP GPS tracker sockets
+function handleGpsTracker(socket) {
     const clientAddress = `${socket.remoteAddress}:${socket.remotePort}`;
     let clientBuffer = Buffer.alloc(0); // Accumulate TCP stream data
     let devicePhone = null; // Store device phone/ID after first message
-
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] Client connected: ${clientAddress}`);
 
     socket.on('data', (data) => {
         const now = new Date().toISOString();
@@ -347,6 +398,26 @@ Checksum: ${header.checksumValid ? 'VALID' : 'INVALID (expected 0x' + header.cal
                         parsedLog += `\nPositioned: ${loc.positioned ? 'YES' : 'NO'}`;
                         parsedLog += `\nAlarm: ${loc.alarmFlags}`;
                         parsedLog += `\nStatus: ${loc.statusFlags}`;
+
+                        // Store device location update in memory
+                        const deviceId = header.phoneHex;
+                        const deviceData = {
+                            deviceId: deviceId,
+                            latitude: loc.latitude,
+                            longitude: loc.longitude,
+                            altitude: loc.altitude,
+                            speed: loc.speed,
+                            direction: loc.direction,
+                            time: loc.time,
+                            positioned: loc.positioned,
+                            alarmFlags: loc.alarmFlags,
+                            statusFlags: loc.statusFlags,
+                            lastUpdated: new Date().toISOString()
+                        };
+                        activeDevices[deviceId] = deviceData;
+
+                        // Broadcast to connected web/app listeners
+                        broadcastLocation(deviceData);
                     }
                     parsedLog += `\nAction: Sending Location ACK`;
                     response = buildGeneralResponse(
@@ -358,7 +429,6 @@ Checksum: ${header.checksumValid ? 'VALID' : 'INVALID (expected 0x' + header.cal
                 case 0x0001: // Terminal General Response (device acknowledging our commands)
                     console.log(`[${now}] >>> Device ACK received`);
                     parsedLog += `\nAction: No response needed (device ACK)`;
-                    // No response needed
                     break;
 
                 default:
@@ -393,6 +463,30 @@ Checksum: ${header.checksumValid ? 'VALID' : 'INVALID (expected 0x' + header.cal
     socket.on('close', () => {
         console.log(`[${new Date().toISOString()}] Connection closed: ${clientAddress}`);
     });
+}
+
+// Multiplexed raw TCP Server
+const server = net.createServer((socket) => {
+    // Peek at the first chunk of data to determine protocol
+    socket.once('data', (chunk) => {
+        const firstByte = chunk[0];
+
+        // HTTP requests start with 'G' (GET), 'P' (POST), 'H' (HEAD), 'O' (OPTIONS), etc.
+        const isHttp = firstByte === 0x47 || firstByte === 0x50 || firstByte === 0x48 || firstByte === 0x4f || firstByte === 0x55 || firstByte === 0x44;
+
+        // Push the chunk back so the corresponding parser reads it
+        socket.unshift(chunk);
+
+        if (isHttp) {
+            // Forward HTTP/WebSocket connections to the HTTP Server
+            httpServer.emit('connection', socket);
+        } else {
+            // Handle as JT808 TCP Tracker
+            const clientAddress = `${socket.remoteAddress}:${socket.remotePort}`;
+            console.log(`[${new Date().toISOString()}] JT808 Client connected: ${clientAddress}`);
+            handleGpsTracker(socket);
+        }
+    });
 });
 
 server.on('error', (err) => {
@@ -401,8 +495,8 @@ server.on('error', (err) => {
 
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`=== JT808 GPS Tracker Server ===`);
-    console.log(`Listening on port ${PORT}`);
-    console.log(`Raw log:    ${LOG_FILE}`);
-    console.log(`Parsed log: ${PARSED_LOG}`);
+    console.log(`Combined TCP/WS Port:  ${PORT}`);
+    console.log(`Raw log:               ${LOG_FILE}`);
+    console.log(`Parsed log:            ${PARSED_LOG}`);
     console.log(`================================`);
 });
