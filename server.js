@@ -126,6 +126,66 @@ wss.on('connection', (ws, req) => {
                         ws.send(JSON.stringify({ type: 'login_response', success: false, message: 'Invalid credentials' }));
                     }
                 }
+            } else if (request.type === 'get_users') {
+                const { role } = request;
+                if (role !== 'admin') {
+                    ws.send(JSON.stringify({ type: 'users_list_response', success: false, message: 'Unauthorized' }));
+                } else {
+                    if (dbPool) {
+                        try {
+                            const [rows] = await dbPool.query('SELECT id, username, role, created_at FROM users ORDER BY username ASC');
+                            ws.send(JSON.stringify({ type: 'users_list_response', success: true, users: rows }));
+                        } catch (err) {
+                            console.error('Error fetching users:', err.message);
+                            ws.send(JSON.stringify({ type: 'users_list_response', success: false, message: 'Database error' }));
+                        }
+                    } else {
+                        ws.send(JSON.stringify({
+                            type: 'users_list_response',
+                            success: true,
+                            users: [
+                                { id: 1, username: 'admin', role: 'admin', created_at: new Date().toISOString() },
+                                { id: 2, username: 'editor', role: 'editor', created_at: new Date().toISOString() },
+                            ]
+                        }));
+                    }
+                }
+            } else if (request.type === 'create_user') {
+                const { role, username, password, userRole } = request;
+                if (role !== 'admin') {
+                    ws.send(JSON.stringify({ type: 'create_user_response', success: false, message: 'Unauthorized' }));
+                } else {
+                    if (dbPool) {
+                        try {
+                            const crypto = require('crypto');
+                            const passHash = crypto.createHash('sha256').update(password).digest('hex');
+                            await dbPool.query('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)', [username, passHash, userRole]);
+                            ws.send(JSON.stringify({ type: 'create_user_response', success: true, message: 'User created successfully' }));
+                        } catch (err) {
+                            console.error('Error creating user:', err.message);
+                            ws.send(JSON.stringify({ type: 'create_user_response', success: false, message: err.code === 'ER_DUP_ENTRY' ? 'Username already exists' : 'Database error' }));
+                        }
+                    } else {
+                        ws.send(JSON.stringify({ type: 'create_user_response', success: true, message: 'Mock user created successfully' }));
+                    }
+                }
+            } else if (request.type === 'delete_user') {
+                const { role, userId } = request;
+                if (role !== 'admin') {
+                    ws.send(JSON.stringify({ type: 'delete_user_response', success: false, message: 'Unauthorized' }));
+                } else {
+                    if (dbPool) {
+                        try {
+                            await dbPool.query('DELETE FROM users WHERE id = ?', [userId]);
+                            ws.send(JSON.stringify({ type: 'delete_user_response', success: true, message: 'User deleted successfully' }));
+                        } catch (err) {
+                            console.error('Error deleting user:', err.message);
+                            ws.send(JSON.stringify({ type: 'delete_user_response', success: false, message: 'Database error' }));
+                        }
+                    } else {
+                        ws.send(JSON.stringify({ type: 'delete_user_response', success: true, message: 'Mock user deleted successfully' }));
+                    }
+                }
             } else if (request.type === 'update_device_metadata') {
                 const { deviceId, name, color, carType, additionalData, role } = request;
                 if (role !== 'admin' && role !== 'editor') {

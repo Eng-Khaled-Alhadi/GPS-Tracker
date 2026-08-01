@@ -81032,3 +81032,318 @@ Alarm: 0x00000000
 Status: 0x00000002
 Action: Sending Location ACK
 -----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:26.953Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335601
+Serial: 1
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 76 F5 1D 02 C6 41 33 02 58 01 BA 00 56 26 08 01 15 00 26
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.573213
+Longitude: 46.547251
+Altitude: 600m
+Speed: 44.2 km/h
+Direction: 86°
+GPS Time: 2026/08/01 15:00:26
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:26.968Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335602
+Serial: 1
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 76 DF 62 02 C6 50 A0 02 62 02 54 00 BA 26 08 01 15 00 26
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.56765
+Longitude: 46.5512
+Altitude: 610m
+Speed: 59.6 km/h
+Direction: 186°
+GPS Time: 2026/08/01 15:00:26
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:26.968Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335603
+Serial: 1
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 77 01 F4 02 C6 24 4D 02 53 01 41 01 13 26 08 01 15 00 26
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.5765
+Longitude: 46.539853
+Altitude: 595m
+Speed: 32.1 km/h
+Direction: 275°
+GPS Time: 2026/08/01 15:00:26
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:29.963Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335601
+Serial: 2
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 76 F5 34 02 C6 42 9E 02 58 01 C6 00 50 26 08 01 15 00 29
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.573236
+Longitude: 46.547614
+Altitude: 600m
+Speed: 45.4 km/h
+Direction: 80°
+GPS Time: 2026/08/01 15:00:29
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:29.970Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335602
+Serial: 2
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 76 DD A6 02 C6 50 6C 02 62 02 46 00 B6 26 08 01 15 00 29
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.567206
+Longitude: 46.551148
+Altitude: 610m
+Speed: 58.2 km/h
+Direction: 182°
+GPS Time: 2026/08/01 15:00:29
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:29.970Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335603
+Serial: 2
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 77 02 08 02 C6 23 45 02 53 01 36 01 1D 26 08 01 15 00 29
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.57652
+Longitude: 46.539589
+Altitude: 595m
+Speed: 31 km/h
+Direction: 285°
+GPS Time: 2026/08/01 15:00:29
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:32.976Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335601
+Serial: 3
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 76 F5 6F 02 C6 44 0F 02 58 01 D8 00 50 26 08 01 15 00 32
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.573295
+Longitude: 46.547983
+Altitude: 600m
+Speed: 47.2 km/h
+Direction: 80°
+GPS Time: 2026/08/01 15:00:32
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:32.985Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335602
+Serial: 3
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 76 DB F3 02 C6 50 5B 02 62 02 3C 00 B2 26 08 01 15 00 32
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.566771
+Longitude: 46.551131
+Altitude: 610m
+Speed: 57.2 km/h
+Direction: 178°
+GPS Time: 2026/08/01 15:00:32
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:32.985Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335603
+Serial: 3
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 77 02 45 02 C6 22 4E 02 53 01 2C 01 21 26 08 01 15 00 32
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.576581
+Longitude: 46.539342
+Altitude: 595m
+Speed: 30 km/h
+Direction: 289°
+GPS Time: 2026/08/01 15:00:32
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:35.980Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335601
+Serial: 4
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 76 F5 AC 02 C6 45 8E 02 58 01 D4 00 4F 26 08 01 15 00 35
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.573356
+Longitude: 46.548366
+Altitude: 600m
+Speed: 46.8 km/h
+Direction: 79°
+GPS Time: 2026/08/01 15:00:35
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:35.985Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335602
+Serial: 4
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 76 DA 46 02 C6 50 6C 02 62 02 25 00 BC 26 08 01 15 00 35
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.566342
+Longitude: 46.551148
+Altitude: 610m
+Speed: 54.9 km/h
+Direction: 188°
+GPS Time: 2026/08/01 15:00:35
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:35.985Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335603
+Serial: 4
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 77 02 8E 02 C6 21 64 02 53 01 24 01 29 26 08 01 15 00 35
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.576654
+Longitude: 46.539108
+Altitude: 595m
+Speed: 29.2 km/h
+Direction: 297°
+GPS Time: 2026/08/01 15:00:35
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:38.989Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335601
+Serial: 5
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 76 F5 EF 02 C6 47 08 02 58 01 C1 00 4E 26 08 01 15 00 38
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.573423
+Longitude: 46.548744
+Altitude: 600m
+Speed: 44.9 km/h
+Direction: 78°
+GPS Time: 2026/08/01 15:00:38
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:38.997Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335602
+Serial: 5
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 76 D8 AF 02 C6 50 2D 02 62 02 28 00 B6 26 08 01 15 00 38
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.565935
+Longitude: 46.551085
+Altitude: 610m
+Speed: 55.2 km/h
+Direction: 182°
+GPS Time: 2026/08/01 15:00:38
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------
+--- Parsed JT808 Message ---
+Time: 2026-08-01T15:00:38.997Z
+From: 127.0.0.1:19079
+Message: Location Report (0x0200)
+Phone/ID: 019176335603
+Serial: 5
+Body Length: 28
+Body Hex: 00 00 00 00 00 00 00 02 01 77 02 F1 02 C6 20 8E 02 53 01 2E 01 2A 26 08 01 15 00 38
+Checksum: VALID
+--- GPS DATA ---
+Latitude: 24.576753
+Longitude: 46.538894
+Altitude: 595m
+Speed: 30.2 km/h
+Direction: 298°
+GPS Time: 2026/08/01 15:00:38
+Positioned: YES
+Alarm: 0x00000000
+Status: 0x00000002
+Action: Sending Location ACK
+-----------------------------

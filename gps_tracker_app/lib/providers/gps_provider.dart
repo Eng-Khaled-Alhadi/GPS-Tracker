@@ -13,6 +13,13 @@ class GPSProvider extends ChangeNotifier {
   String _currentRole = 'viewer';
   String _currentUsername = 'Guest';
 
+  // Theme Settings
+  bool _isDarkTheme = true;
+  Color _accentColor = Colors.blueAccent;
+
+  // Administrative users state
+  List<Map<String, dynamic>> _users = [];
+
   // Tracking devices
   final Map<String, Device> _devices = {};
   String? _selectedDeviceId;
@@ -25,6 +32,9 @@ class GPSProvider extends ChangeNotifier {
   String get serverAddress => _serverAddress;
   String get currentRole => _currentRole;
   String get currentUsername => _currentUsername;
+  bool get isDarkTheme => _isDarkTheme;
+  Color get accentColor => _accentColor;
+  List<Map<String, dynamic>> get users => _users;
   List<Device> get devicesList => _devices.values.toList();
   Map<String, Device> get devicesMap => _devices;
   String? get selectedDeviceId => _selectedDeviceId;
@@ -141,9 +151,63 @@ class GPSProvider extends ChangeNotifier {
           );
           notifyListeners();
         }
+      } else if (type == 'users_list_response') {
+        if (parsed['success'] == true && parsed['users'] is List) {
+          _users = List<Map<String, dynamic>>.from(
+            (parsed['users'] as List).map((u) => Map<String, dynamic>.from(u as Map)),
+          );
+          notifyListeners();
+        }
+      } else if (type == 'create_user_response') {
+        fetchUsers();
+      } else if (type == 'delete_user_response') {
+        fetchUsers();
       }
     } catch (e) {
       debugPrint('Error parsing WebSocket provider message: $e');
+    }
+  }
+
+  // Theme Settings actions
+  void toggleTheme(bool isDark) {
+    _isDarkTheme = isDark;
+    notifyListeners();
+  }
+
+  void setAccentColor(Color color) {
+    _accentColor = color;
+    notifyListeners();
+  }
+
+  // User Management actions
+  void fetchUsers() {
+    if (_channel != null && _isConnected && _currentRole == 'admin') {
+      _channel!.sink.add(jsonEncode({
+        'type': 'get_users',
+        'role': _currentRole,
+      }));
+    }
+  }
+
+  void createUser(String username, String password, String role) {
+    if (_channel != null && _isConnected && _currentRole == 'admin') {
+      _channel!.sink.add(jsonEncode({
+        'type': 'create_user',
+        'role': _currentRole,
+        'username': username,
+        'password': password,
+        'userRole': role,
+      }));
+    }
+  }
+
+  void deleteUser(dynamic userId) {
+    if (_channel != null && _isConnected && _currentRole == 'admin') {
+      _channel!.sink.add(jsonEncode({
+        'type': 'delete_user',
+        'role': _currentRole,
+        'userId': userId,
+      }));
     }
   }
 

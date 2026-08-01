@@ -20,6 +20,23 @@ class GPSDashboard extends StatefulWidget {
 
 class _GPSDashboardState extends State<GPSDashboard> {
   final MapController _mapController = MapController();
+  Timer? _uiTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _uiTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _uiTimer?.cancel();
+    super.dispose();
+  }
 
   void _focusDevice(GPSProvider provider, Device device) {
     provider.selectDevice(device.id);
@@ -203,6 +220,210 @@ class _GPSDashboardState extends State<GPSDashboard> {
           ],
         );
       },
+    );
+  }
+
+  void _showAdminSettingsDialog(GPSProvider provider) {
+    provider.fetchUsers();
+
+    final usernameController = TextEditingController();
+    final passwordController = TextEditingController();
+    String selectedRole = 'viewer';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return DefaultTabController(
+              length: 2,
+              child: AlertDialog(
+                title: const Text('Admin Panel & Settings'),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                content: SizedBox(
+                  width: 500,
+                  height: 420,
+                  child: Column(
+                    children: [
+                      const TabBar(
+                        tabs: [
+                          Tab(icon: Icon(Icons.manage_accounts), text: 'Users Manager'),
+                          Tab(icon: Icon(Icons.palette), text: 'Theme Settings'),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: TabBarView(
+                          children: [
+                            // 1. Users Manager Tab
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ExpansionTile(
+                                  title: const Text('Add New User', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        children: [
+                                          TextField(
+                                            controller: usernameController,
+                                            decoration: const InputDecoration(labelText: 'Username', isDense: true),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          TextField(
+                                            controller: passwordController,
+                                            obscureText: true,
+                                            decoration: const InputDecoration(labelText: 'Password', isDense: true),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          DropdownButtonFormField<String>(
+                                            value: selectedRole,
+                                            decoration: const InputDecoration(labelText: 'Role', isDense: true),
+                                            items: const [
+                                              DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                                              DropdownMenuItem(value: 'editor', child: Text('Editor')),
+                                              DropdownMenuItem(value: 'viewer', child: Text('Viewer')),
+                                            ],
+                                            onChanged: (val) {
+                                              if (val != null) {
+                                                setDialogState(() {
+                                                  selectedRole = val;
+                                                });
+                                              }
+                                            },
+                                          ),
+                                          const SizedBox(height: 12),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              final user = usernameController.text.trim();
+                                              final pass = passwordController.text;
+                                              if (user.isNotEmpty && pass.isNotEmpty) {
+                                                provider.createUser(user, pass, selectedRole);
+                                                usernameController.clear();
+                                                passwordController.clear();
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(content: Text('Creating user "$user"...')),
+                                                );
+                                              }
+                                            },
+                                            child: const Text('Add User'),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Divider(),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  child: Text('Existing Users:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                ),
+                                Expanded(
+                                  child: provider.users.isEmpty
+                                      ? const Center(child: Text('Loading users...', style: TextStyle(color: Colors.grey)))
+                                      : ListView.builder(
+                                          itemCount: provider.users.length,
+                                          itemBuilder: (context, index) {
+                                            final u = provider.users[index];
+                                            final isSelf = u['username'] == provider.currentUsername;
+                                            return ListTile(
+                                              title: Text(u['username'] ?? ''),
+                                              subtitle: Text('Role: ${u['role']}'),
+                                              dense: true,
+                                              trailing: isSelf
+                                                  ? const Chip(label: Text('You', style: TextStyle(fontSize: 10)))
+                                                  : IconButton(
+                                                      icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                                                      onPressed: () {
+                                                        provider.deleteUser(u['id']);
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          SnackBar(content: Text('Deleting user "${u['username']}"...')),
+                                                        );
+                                                      },
+                                                    ),
+                                            );
+                                          },
+                                        ),
+                                ),
+                              ],
+                            ),
+
+                            // 2. Theme Settings Tab
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Theme Mode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                  const SizedBox(height: 8),
+                                  SwitchListTile(
+                                    title: const Text('Dark Mode'),
+                                    value: provider.isDarkTheme,
+                                    onChanged: (val) {
+                                      provider.toggleTheme(val);
+                                    },
+                                  ),
+                                  const Divider(height: 32),
+                                  const Text('Accent Color', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      _colorDot(provider, Colors.blueAccent, 'Blue'),
+                                      _colorDot(provider, Colors.greenAccent, 'Green'),
+                                      _colorDot(provider, Colors.orangeAccent, 'Orange'),
+                                      _colorDot(provider, Colors.purpleAccent, 'Purple'),
+                                      _colorDot(provider, Colors.redAccent, 'Red'),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _colorDot(GPSProvider provider, Color color, String name) {
+    final isSelected = provider.accentColor.value == color.value;
+    return GestureDetector(
+      onTap: () => provider.setAccentColor(color),
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.transparent,
+            width: 3,
+          ),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: color.withOpacity(0.5),
+                blurRadius: 8,
+                spreadRadius: 2,
+              )
+          ],
+        ),
+      ),
     );
   }
 
@@ -407,6 +628,14 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                 onPressed: () => _showServerConfigDialog(provider),
                                 tooltip: 'Server Settings',
                               ),
+                              if (provider.currentRole == 'admin') ...[
+                                const SizedBox(width: 4),
+                                IconButton(
+                                  icon: const Icon(Icons.admin_panel_settings, color: Colors.amber),
+                                  onPressed: () => _showAdminSettingsDialog(provider),
+                                  tooltip: 'Admin Settings',
+                                ),
+                              ],
                             ],
                           ),
                         ),
