@@ -1,15 +1,27 @@
+require('dotenv').config();
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const WebSocket = require('ws');
+const mysql = require('mysql2/promise');
 
 const PORT = 8000;
 const LOG_FILE = path.join(__dirname, 'log.txt');
 const PARSED_LOG = path.join(__dirname, 'parsed_log.txt');
 
-// Keep track of all active devices and their latest location
+// Database Connection Configuration
+const DB_HOST = process.env.DB_HOST || 'localhost';
+const DB_USER = process.env.DB_USER || 'root';
+const DB_PASSWORD = process.env.DB_PASSWORD || '';
+const DB_NAME = process.env.DB_NAME || 'gps_tracker';
+const DB_PORT = process.env.DB_PORT || 3306;
+
+let dbPool = null;
+
+// Keep track of all active devices, their latest locations, and metadata cache
 const activeDevices = {};
+const deviceMetadata = {};
 
 // Create dummy HTTP server to handle WebSocket handshakes
 const httpServer = http.createServer((req, res) => {
@@ -25,10 +37,155 @@ wss.on('connection', (ws, req) => {
     console.log(`[${new Date().toISOString()}] WebSocket client connected from ${clientIp}`);
 
     // Send the current active state of all devices immediately upon connection
+    const decoratedDevices = Object.values(activeDevices).map(dev => {
+        const meta = deviceMetadata[dev.deviceId] || {};
+        return {
+            ...dev,
+            name: meta.name || null,
+            color: meta.color || null,
+            carType: meta.carType || null,
+            additionalData: meta.additionalData || null
+        };
+    });
     ws.send(JSON.stringify({
         type: 'devices_state',
-        data: Object.values(activeDevices)
+        data: decoratedDevices
     }));
+
+    ws.on('message', async (message) => {
+        try {
+            const request = JSON.parse(message);
+            if (request.type === 'get_devices') {
+                let devices = Object.keys(activeDevices);
+                if (dbPool) {
+                    try {
+                        const [rows] = await dbPool.query('SELECT DISTINCT device_id FROM device_history UNION SELECT DISTINCT device_id FROM devices');
+                        const dbDevices = rows.map(r => r.device_id);
+                        devices = Array.from(new Set([...devices, ...dbDevices]));
+                    } catch (err) {
+                        console.error('Error fetching devices list from DB:', err.message);
+                    }
+                }
+                ws.send(JSON.stringify({
+                    type: 'devices_list_response',
+                    devices: devices
+                }));
+            } else if (request.type === 'get_history') {
+                const { deviceId, date } = request;
+                if (dbPool) {
+                    const query = `
+                        SELECT latitude, longitude, altitude, speed, direction, gps_time, positioned, alarm_flags, status_flags
+                        FROM device_history
+                        WHERE device_id = ? AND DATE(gps_time) = ?
+                        ORDER BY gps_time ASC
+                    `;
+                    const [rows] = await dbPool.query(query, [deviceId, date]);
+                    ws.send(JSON.stringify({
+                        type: 'history_response',
+                        deviceId: deviceId,
+                        date: date,
+                        history: rows
+                    }));
+                } else {
+                    ws.send(JSON.stringify({
+                        type: 'history_response',
+                        deviceId: deviceId,
+                        date: date,
+                        history: []
+                    }));
+                }
+            } else if (request.type === 'login') {
+                const { username, password } = request;
+                if (dbPool) {
+                    const crypto = require('crypto');
+                    const passHash = crypto.createHash('sha256').update(password).digest('hex');
+                    try {
+                        const [rows] = await dbPool.query('SELECT role FROM users WHERE username = ? AND password_hash = ?', [username, passHash]);
+                        if (rows.length > 0) {
+                            ws.send(JSON.stringify({
+                                type: 'login_response',
+                                success: true,
+                                role: rows[0].role,
+                                username: username
+                            }));
+                        } else {
+                            ws.send(JSON.stringify({
+                                type: 'login_response',
+                                success: false,
+                                message: 'Invalid username or password'
+                            }));
+                        }
+                    } catch (err) {
+                        console.error('Login DB Error:', err.message);
+                        ws.send(JSON.stringify({ type: 'login_response', success: false, message: 'Server Database Error' }));
+                    }
+                } else {
+                    if (username === 'admin' && password === 'admin123') {
+                        ws.send(JSON.stringify({ type: 'login_response', success: true, role: 'admin', username: 'admin' }));
+                    } else {
+                        ws.send(JSON.stringify({ type: 'login_response', success: false, message: 'Invalid credentials' }));
+                    }
+                }
+            } else if (request.type === 'update_device_metadata') {
+                const { deviceId, name, color, carType, additionalData, role } = request;
+                if (role !== 'admin' && role !== 'editor') {
+                    ws.send(JSON.stringify({
+                        type: 'update_device_metadata_response',
+                        success: false,
+                        message: 'Unauthorized: Viewer role cannot modify metadata.'
+                    }));
+                } else {
+                    deviceMetadata[deviceId] = {
+                        name,
+                        color,
+                        carType,
+                        additionalData
+                    };
+                    if (dbPool) {
+                        try {
+                            const query = `
+                                INSERT INTO device_metadata (device_id, name, color, car_type, additional_data)
+                                VALUES (?, ?, ?, ?, ?)
+                                ON DUPLICATE KEY UPDATE
+                                    name = VALUES(name),
+                                    color = VALUES(color),
+                                    car_type = VALUES(car_type),
+                                    additional_data = VALUES(additional_data)
+                            `;
+                            const serializedData = additionalData ? JSON.stringify(additionalData) : null;
+                            await dbPool.query(query, [deviceId, name, color, carType, serializedData]);
+                        } catch (err) {
+                            console.error('Error saving device metadata:', err.message);
+                        }
+                    }
+                    const decoratedUpdate = {
+                        type: 'metadata_update',
+                        deviceId,
+                        name,
+                        color,
+                        carType,
+                        additionalData
+                    };
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify(decoratedUpdate));
+                        }
+                    });
+                    if (activeDevices[deviceId]) {
+                        activeDevices[deviceId] = {
+                            ...activeDevices[deviceId],
+                            name,
+                            color,
+                            carType,
+                            additionalData
+                        };
+                    }
+                }
+            }
+        } catch (e) {
+            console.error(`[${new Date().toISOString()}] Error handling WebSocket client message:`, e.message);
+        }
+    });
 
     ws.on('close', () => {
         console.log(`[${new Date().toISOString()}] WebSocket client disconnected: ${clientIp}`);
@@ -48,9 +205,17 @@ httpServer.on('upgrade', (req, socket, head) => {
 
 // Broadcast parsed location data to all connected WebSocket clients
 function broadcastLocation(deviceData) {
+    const meta = deviceMetadata[deviceData.deviceId] || {};
+    const decoratedData = {
+        ...deviceData,
+        name: meta.name || null,
+        color: meta.color || null,
+        carType: meta.carType || null,
+        additionalData: meta.additionalData || null
+    };
     const message = JSON.stringify({
         type: 'location_update',
-        data: deviceData
+        data: decoratedData
     });
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
@@ -276,6 +441,219 @@ function hexDump(buf) {
     return hex.match(/.{1,2}/g)?.join(' ') || '';
 }
 
+// ============== Database Initialization & Helpers ==============
+
+async function initDatabase() {
+    try {
+        console.log(`[${new Date().toISOString()}] Initializing connection to MySQL server at ${DB_HOST}:${DB_PORT}...`);
+        
+        // Connect to MySQL server first to ensure DB exists
+        const connection = await mysql.createConnection({
+            host: DB_HOST,
+            user: DB_USER,
+            password: DB_PASSWORD,
+            port: DB_PORT
+        });
+        await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;`);
+        await connection.end();
+
+        // Create connection pool
+        dbPool = mysql.createPool({
+            host: DB_HOST,
+            user: DB_USER,
+            password: DB_PASSWORD,
+            database: DB_NAME,
+            port: DB_PORT,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0
+        });
+
+        console.log(`[${new Date().toISOString()}] Connected to MySQL database "${DB_NAME}"`);
+
+        // Create tables if they do not exist
+        await dbPool.query(`
+            CREATE TABLE IF NOT EXISTS devices (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                device_id VARCHAR(50) UNIQUE NOT NULL,
+                latitude DECIMAL(10, 8) NOT NULL,
+                longitude DECIMAL(11, 8) NOT NULL,
+                altitude DOUBLE NOT NULL,
+                speed DOUBLE NOT NULL,
+                direction DOUBLE NOT NULL,
+                gps_time DATETIME NOT NULL,
+                positioned TINYINT(1) NOT NULL,
+                alarm_flags VARCHAR(20) NOT NULL,
+                status_flags VARCHAR(20) NOT NULL,
+                last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            );
+        `);
+
+        await dbPool.query(`
+            CREATE TABLE IF NOT EXISTS device_history (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                device_id VARCHAR(50) NOT NULL,
+                latitude DECIMAL(10, 8) NOT NULL,
+                longitude DECIMAL(11, 8) NOT NULL,
+                altitude DOUBLE NOT NULL,
+                speed DOUBLE NOT NULL,
+                direction DOUBLE NOT NULL,
+                gps_time DATETIME NOT NULL,
+                positioned TINYINT(1) NOT NULL,
+                alarm_flags VARCHAR(20) NOT NULL,
+                status_flags VARCHAR(20) NOT NULL,
+                received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX (device_id),
+                INDEX (gps_time)
+            );
+        `);
+
+        await dbPool.query(`
+            CREATE TABLE IF NOT EXISTS device_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                device_id VARCHAR(50) NOT NULL,
+                message_id VARCHAR(10) NOT NULL,
+                message_name VARCHAR(100) NOT NULL,
+                serial_number INT NOT NULL,
+                body_hex TEXT,
+                checksum_valid TINYINT(1) NOT NULL,
+                received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX (device_id)
+            );
+        `);
+
+        await dbPool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                role ENUM('admin', 'editor', 'viewer') DEFAULT 'viewer',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        await dbPool.query(`
+            CREATE TABLE IF NOT EXISTS device_metadata (
+                device_id VARCHAR(50) PRIMARY KEY,
+                name VARCHAR(100) DEFAULT NULL,
+                color VARCHAR(20) DEFAULT NULL,
+                car_type VARCHAR(50) DEFAULT NULL,
+                additional_data JSON DEFAULT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            );
+        `);
+
+        // Seed default admin user if none exists
+        const [userRows] = await dbPool.query('SELECT id FROM users LIMIT 1');
+        if (userRows.length === 0) {
+            const crypto = require('crypto');
+            const defaultPassHash = crypto.createHash('sha256').update('admin123').digest('hex');
+            await dbPool.query('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)', ['admin', defaultPassHash, 'admin']);
+            console.log(`[${new Date().toISOString()}] Default admin user created (username: admin, password: admin123)`);
+        }
+
+        // Load device metadata cache
+        const [metaRows] = await dbPool.query('SELECT * FROM device_metadata');
+        for (const row of metaRows) {
+            deviceMetadata[row.device_id] = {
+                name: row.name,
+                color: row.color,
+                carType: row.car_type,
+                additionalData: typeof row.additional_data === 'string' ? JSON.parse(row.additional_data) : row.additional_data
+            };
+        }
+
+        console.log(`[${new Date().toISOString()}] Database schema initialized successfully (${metaRows.length} metadata loaded)`);
+    } catch (err) {
+        console.error(`[${new Date().toISOString()}] Database initialization failed:`, err.message);
+        console.log('Server will continue running, but database features will be disabled/mocked.');
+        dbPool = null;
+    }
+}
+
+// Database logging helper
+async function logDeviceMessage(deviceId, msgId, msgName, serialNumber, bodyHex, checksumValid) {
+    if (!dbPool) return;
+    try {
+        const query = `
+            INSERT INTO device_logs (device_id, message_id, message_name, serial_number, body_hex, checksum_valid)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        await dbPool.query(query, [
+            deviceId,
+            `0x${msgId.toString(16).toUpperCase().padStart(4, '0')}`,
+            msgName,
+            serialNumber,
+            bodyHex,
+            checksumValid ? 1 : 0
+        ]);
+    } catch (err) {
+        console.error(`[${new Date().toISOString()}] Failed to log message to DB:`, err.message);
+    }
+}
+
+// Database location helper
+async function saveDeviceLocation(deviceData) {
+    if (!dbPool) return;
+    try {
+        // Convert time format like "2026/08/01 15:26:56" to "2026-08-01 15:26:56"
+        let formattedTime = null;
+        if (deviceData.time) {
+            formattedTime = deviceData.time.replace(/\//g, '-');
+        } else {
+            formattedTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        }
+
+        // Insert or update latest device state
+        const queryDevice = `
+            INSERT INTO devices (device_id, latitude, longitude, altitude, speed, direction, gps_time, positioned, alarm_flags, status_flags)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                latitude = VALUES(latitude),
+                longitude = VALUES(longitude),
+                altitude = VALUES(altitude),
+                speed = VALUES(speed),
+                direction = VALUES(direction),
+                gps_time = VALUES(gps_time),
+                positioned = VALUES(positioned),
+                alarm_flags = VALUES(alarm_flags),
+                status_flags = VALUES(status_flags)
+        `;
+        await dbPool.query(queryDevice, [
+            deviceData.deviceId,
+            deviceData.latitude,
+            deviceData.longitude,
+            deviceData.altitude,
+            deviceData.speed,
+            deviceData.direction,
+            formattedTime,
+            deviceData.positioned ? 1 : 0,
+            deviceData.alarmFlags,
+            deviceData.statusFlags
+        ]);
+
+        // Insert into history log
+        const queryHistory = `
+            INSERT INTO device_history (device_id, latitude, longitude, altitude, speed, direction, gps_time, positioned, alarm_flags, status_flags)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        await dbPool.query(queryHistory, [
+            deviceData.deviceId,
+            deviceData.latitude,
+            deviceData.longitude,
+            deviceData.altitude,
+            deviceData.speed,
+            deviceData.direction,
+            formattedTime,
+            deviceData.positioned ? 1 : 0,
+            deviceData.alarmFlags,
+            deviceData.statusFlags
+        ]);
+    } catch (err) {
+        console.error(`[${new Date().toISOString()}] Failed to save location to DB:`, err.message);
+    }
+}
+
 // ============== Server ==============
 
 let serverSerial = 0; // Server-side message serial counter
@@ -338,6 +716,9 @@ Serial: ${header.msgSerial}
 Body Length: ${header.bodyLength}
 Body Hex: ${hexDump(header.body)}
 Checksum: ${header.checksumValid ? 'VALID' : 'INVALID (expected 0x' + header.calculatedCheck.toString(16) + ', got 0x' + (header.checkByte || 0).toString(16) + ')'}`;
+
+            // Log message to database asynchronously
+            logDeviceMessage(header.phoneHex, header.msgId, msgName, header.msgSerial, hexDump(header.body), header.checksumValid);
 
             // Handle specific message types
             let response = null;
@@ -416,6 +797,9 @@ Checksum: ${header.checksumValid ? 'VALID' : 'INVALID (expected 0x' + header.cal
                         };
                         activeDevices[deviceId] = deviceData;
 
+                        // Save to MySQL Database
+                        saveDeviceLocation(deviceData);
+
                         // Broadcast to connected web/app listeners
                         broadcastLocation(deviceData);
                     }
@@ -493,10 +877,13 @@ server.on('error', (err) => {
     console.error('Server error:', err.message);
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`=== JT808 GPS Tracker Server ===`);
-    console.log(`Combined TCP/WS Port:  ${PORT}`);
-    console.log(`Raw log:               ${LOG_FILE}`);
-    console.log(`Parsed log:            ${PARSED_LOG}`);
-    console.log(`================================`);
+// Initialize Database, then start server
+initDatabase().then(() => {
+    server.listen(PORT, '0.0.0.0', () => {
+        console.log(`=== JT808 GPS Tracker Server ===`);
+        console.log(`Combined TCP/WS Port:  ${PORT}`);
+        console.log(`Raw log:               ${LOG_FILE}`);
+        console.log(`Parsed log:            ${PARSED_LOG}`);
+        console.log(`================================`);
+    });
 });
