@@ -833,7 +833,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                     ),
                                   ),
                                   Text(
-                                    'Updated ${DateTime.now().difference(selectedDevice.lastUpdated).inSeconds}s ago',
+                                    'Updated ${_formatElapsedTime(selectedDevice.lastUpdated)}',
                                     style: const TextStyle(color: Colors.grey, fontSize: 11),
                                   ),
                                 ],
@@ -961,6 +961,23 @@ class _GPSDashboardState extends State<GPSDashboard> {
       return map[colorStr.toLowerCase()];
     } catch (e) {
       return null;
+    }
+  }
+
+  String _formatElapsedTime(DateTime lastUpdated) {
+    final difference = DateTime.now().difference(lastUpdated);
+    if (difference.inSeconds < 5) {
+      return 'Just now';
+    } else if (difference.inMinutes < 1) {
+      return '${difference.inSeconds}s ago';
+    } else if (difference.inHours < 1) {
+      final minutes = difference.inMinutes;
+      final seconds = difference.inSeconds % 60;
+      return '${minutes}m ${seconds}s ago';
+    } else {
+      final hours = difference.inHours;
+      final minutes = difference.inMinutes % 60;
+      return '${hours}h ${minutes}m ago';
     }
   }
 
