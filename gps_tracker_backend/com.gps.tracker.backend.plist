@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.gps.tracker.backend</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/java</string>
+        <string>-jar</string>
+        <string>/Users/eagle/Documents/GitHub/GPS-Tracker/gps_tracker_backend/target/tracker-0.0.1-SNAPSHOT.jar</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/eagle/Documents/GitHub/GPS-Tracker/gps_tracker_backend</string>
+
+    <!-- Only needed if your local DB differs from the built-in defaults
+         (localhost:3306, user root, password root, db gps_tracker).
+         Edit or remove keys as needed. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>DB_HOST</key>
+        <string>localhost</string>
+        <key>DB_PORT</key>
+        <string>3306</string>
+        <key>DB_USER</key>
+        <string>root</string>
+        <key>DB_PASSWORD</key>
+        <string>root</string>
+        <key>DB_NAME</key>
+        <string>gps_tracker</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/eagle/Documents/GitHub/GPS-Tracker/gps_tracker_backend/target/service-stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/eagle/Documents/GitHub/GPS-Tracker/gps_tracker_backend/target/service-stderr.log</string>
+</dict>
+</plist>
