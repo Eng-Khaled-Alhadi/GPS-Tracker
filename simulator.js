@@ -10,7 +10,7 @@ const net = require('net');
 
 //ws://176.45.55.56:3000
 const SERVER_HOST = '176.45.55.56';
-const SERVER_PORT = 3000;
+const SERVER_PORT = 8000;
 const SEND_INTERVAL_MS = 3000; // Send location every 3 seconds
 
 // 3 Simulated cars with different IDs, starting coordinates, speed, and heading

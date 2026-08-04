@@ -11,7 +11,7 @@ class GPSProvider extends ChangeNotifier {
   WebSocketChannel? _channel;
   bool _isConnected = false;
   bool _isConnecting = false;
-  String _serverAddress = 'ws://176.45.55.56:3000';
+  String _serverAddress = 'ws://176.45.55.56:8081';
   String _currentRole = 'viewer';
   String _currentUsername = 'Guest';
   String _token = '';

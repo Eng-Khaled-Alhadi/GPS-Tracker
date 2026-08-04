@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController(text: 'admin');
   final _passwordController = TextEditingController(text: '');
   final _serverController = TextEditingController(
-    text: 'ws://176.45.55.56:3000',
+    text: 'ws://176.45.55.56:8081',
   );
 
   bool _isLoading = false;
