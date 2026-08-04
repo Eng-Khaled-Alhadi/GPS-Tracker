@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../providers/gps_provider.dart';
 import 'dashboard_screen.dart';
+import 'main_navigation_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController(text: 'admin');
   final _passwordController = TextEditingController(text: '');
   final _serverController = TextEditingController(
-    text: 'ws://176.45.55.56:3000',
+    text: 'ws://localhost:8080',
   );
 
   bool _isLoading = false;
@@ -95,6 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response['success'] == true) {
         final role = response['role']?.toString() ?? 'viewer';
         final user = response['username']?.toString() ?? username;
+        final token = response['token']?.toString() ?? '';
 
         if (mounted) {
           subscription.cancel();
@@ -104,11 +106,11 @@ class _LoginScreenState extends State<LoginScreen> {
           Provider.of<GPSProvider>(
             context,
             listen: false,
-          ).initializeSession(role: role, username: user, serverUrl: serverUrl);
+          ).initializeSession(role: role, username: user, serverUrl: serverUrl, token: token);
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const GPSDashboard()),
+            MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
           );
         }
       } else {
@@ -155,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelText: 'WebSocket URL',
                   hintText: 'ws://your-ip:3000',
                   border: OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.link),
+                  prefixIcon: Icon(Icons.link),
                 ),
               ),
             ],
@@ -245,10 +247,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           padding: const EdgeInsets.all(12),
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: Colors.redAccent.withOpacity(0.15),
+                            color: Colors.redAccent.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.redAccent.withOpacity(0.3),
+                              color: Colors.redAccent.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Row(
@@ -298,6 +300,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           prefixIcon: Icon(Icons.person, size: 20),
                           border: OutlineInputBorder(),
                         ),
+                        onFieldSubmitted: (_) => _handleLogin(),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Username is required';
@@ -315,6 +318,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           prefixIcon: Icon(Icons.lock, size: 20),
                           border: OutlineInputBorder(),
                         ),
+                        onFieldSubmitted: (_) => _handleLogin(),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Password is required';

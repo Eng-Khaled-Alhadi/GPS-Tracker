@@ -4,12 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import '../models/device.dart';
 
 class HistoryScreen extends StatefulWidget {
   final String serverAddress;
+  final String token;
 
-  const HistoryScreen({super.key, required this.serverAddress});
+  const HistoryScreen({
+    super.key,
+    required this.serverAddress,
+    required this.token,
+  });
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
@@ -28,6 +32,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   List<LatLng> _historyRoutePoints = [];
   List<Map<String, dynamic>> _historyPointsData = [];
   int _historyPlaybackIndex = 0;
+  StreamSubscription? _subscription;
 
   @override
   void initState() {
@@ -37,6 +42,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   void dispose() {
+    _isConnected = false;
+    _subscription?.cancel();
     _channel?.sink.close();
     super.dispose();
   }
@@ -46,12 +53,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final uri = Uri.parse(widget.serverAddress);
       _channel = WebSocketChannel.connect(uri);
 
-      _channel!.stream.listen(
+      _isConnected = true;
+      bool _hasRequestedDevices = false;
+
+      _subscription = _channel!.stream.listen(
         (message) {
           if (mounted) {
-            setState(() {
-              _isConnected = true;
-            });
+            if (!_hasRequestedDevices) {
+              _hasRequestedDevices = true;
+              _requestDevicesList();
+            }
             _handleIncomingMessage(message);
           }
         },
@@ -71,24 +82,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
           }
         },
       );
-
-      // Request device list immediately after brief delay
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _requestDevicesList();
-      });
     } catch (e) {
       debugPrint('History WS Connect Exception: $e');
     }
   }
 
   void _requestDevicesList() {
-    if (_channel != null && _isConnected) {
-      _channel!.sink.add(jsonEncode({'type': 'get_devices'}));
+    if (mounted && _channel != null && _isConnected) {
+      _channel!.sink.add(
+        jsonEncode({'type': 'get_devices', 'token': widget.token}),
+      );
     }
   }
 
   void _requestHistory(String deviceId, DateTime date) {
-    if (_channel != null && _isConnected) {
+    debugPrint('[HistoryScreen] _requestHistory called: deviceId=$deviceId, date=$date, connected=$_isConnected, channel=${_channel != null}');
+    if (mounted && _channel != null && _isConnected) {
       setState(() {
         _isLoadingHistory = true;
         _historySelectedDeviceId = deviceId;
@@ -98,13 +107,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
       });
       final formattedDate =
           "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-      _channel!.sink.add(
-        jsonEncode({
-          'type': 'get_history',
-          'deviceId': deviceId,
-          'date': formattedDate,
-        }),
-      );
+      final payload = jsonEncode({
+        'type': 'get_history',
+        'deviceId': deviceId,
+        'date': formattedDate,
+        'token': widget.token,
+      });
+      debugPrint('[HistoryScreen] Sending: $payload');
+      _channel!.sink.add(payload);
+    } else {
+      debugPrint('[HistoryScreen] _requestHistory SKIPPED: mounted=$mounted, channel=${_channel != null}, connected=$_isConnected');
     }
   }
 
@@ -114,32 +126,73 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return double.tryParse(val.toString()) ?? 0.0;
   }
 
+  LatLng _getMapCenterWithOffset(LatLng point) {
+    if (!mounted) return point;
+    final isMobile = MediaQuery.of(context).size.width < 800;
+    if (isMobile) {
+      // Shift map center south so the vehicle marker moves up, keeping it out of the bottom card
+      return LatLng(point.latitude - 0.008, point.longitude);
+    }
+    return point;
+  }
+
   void _handleIncomingMessage(dynamic message) {
     try {
       final parsed = jsonDecode(message) as Map<String, dynamic>;
       final type = parsed['type'];
+      debugPrint('[HistoryScreen] Received message type: $type');
 
-      setState(() {
-        if (type == 'devices_list_response') {
-          final list = parsed['devices'] as List;
+      if (type == 'devices_list_response') {
+        final list = parsed['devices'] as List;
+        setState(() {
           _historyDevices = list.map((e) => e.toString()).toList();
-        } else if (type == 'history_response') {
-          _isLoadingHistory = false;
+        });
+      } else if (type == 'history_response') {
+        try {
           final list = parsed['history'] as List;
-          _historyPointsData = list.map((e) => e as Map<String, dynamic>).toList();
-          _historyRoutePoints = list.map((item) {
-            final lat = _parseNum(item['latitude']);
-            final lng = _parseNum(item['longitude']);
+          debugPrint('[HistoryScreen] History points count: ${list.length}');
+          final pointsData = list
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
+          final routePoints = list.map((item) {
+            final mapItem = Map<String, dynamic>.from(item as Map);
+            final lat = _parseNum(mapItem['latitude']);
+            final lng = _parseNum(mapItem['longitude']);
             return LatLng(lat, lng);
           }).toList();
 
-          if (_historyRoutePoints.isNotEmpty) {
-            _mapController.move(_historyRoutePoints.first, 13.0);
+          setState(() {
+            _isLoadingHistory = false;
+            _historyPointsData = pointsData;
+            _historyRoutePoints = routePoints;
+            _historyPlaybackIndex = 0;
+          });
+
+          if (routePoints.isNotEmpty) {
+            _mapController.move(_getMapCenterWithOffset(routePoints.first), 13.0);
           }
+        } catch (e) {
+          debugPrint('[HistoryScreen] Error parsing history data: $e');
+          setState(() {
+            _isLoadingHistory = false;
+          });
         }
-      });
+      } else if (type == 'unauthorized_response') {
+        debugPrint('[HistoryScreen] Unauthorized! ${parsed['message']}');
+        setState(() {
+          _isLoadingHistory = false;
+        });
+      } else {
+        // Other message types (devices_state, location_update, etc.) — ignore silently
+        if (_isLoadingHistory && type != 'devices_state' && type != 'location_update') {
+          debugPrint('[HistoryScreen] Unexpected type while loading: $type — full: $parsed');
+        }
+      }
     } catch (e) {
-      debugPrint('Error parsing message in History Screen: $e');
+      debugPrint('[HistoryScreen] Error parsing message: $e');
+      setState(() {
+        _isLoadingHistory = false;
+      });
     }
   }
 
@@ -159,7 +212,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             Text(
               value,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Colors.white,
+              ),
             ),
           ],
         ),
@@ -194,7 +251,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
       body: Stack(
@@ -208,7 +265,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                urlTemplate:
+                    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
                 subdomains: const ['a', 'b', 'c', 'd'],
               ),
               if (_historyRoutePoints.isNotEmpty) ...[
@@ -217,7 +275,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     Polyline(
                       points: _historyRoutePoints,
                       strokeWidth: 5.0,
-                      color: Colors.cyanAccent.withOpacity(0.9),
+                      color: Colors.cyanAccent.withValues(alpha: 0.9),
                     ),
                   ],
                 ),
@@ -228,14 +286,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       point: _historyRoutePoints.first,
                       width: 40,
                       height: 40,
-                      child: const Icon(Icons.play_circle_fill, color: Colors.greenAccent, size: 30),
+                      child: const Icon(
+                        Icons.play_circle_fill,
+                        color: Colors.greenAccent,
+                        size: 30,
+                      ),
                     ),
                     // End marker (Red)
                     Marker(
                       point: _historyRoutePoints.last,
                       width: 40,
                       height: 40,
-                      child: const Icon(Icons.stop_circle, color: Colors.redAccent, size: 30),
+                      child: const Icon(
+                        Icons.stop_circle,
+                        color: Colors.redAccent,
+                        size: 30,
+                      ),
                     ),
                     // Playback vehicle marker
                     if (_historyPlaybackIndex < _historyRoutePoints.length)
@@ -246,17 +312,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         child: Column(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.8),
+                                color: Colors.black.withValues(alpha: 0.8),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 '${_parseNum(_historyPointsData[_historyPlaybackIndex]['speed']).toStringAsFixed(1)} km/h',
-                                style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontSize: 8,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                            const Icon(Icons.directions_car, color: Colors.yellowAccent, size: 28),
+                            const Icon(
+                              Icons.directions_car,
+                              color: Colors.yellowAccent,
+                              size: 28,
+                            ),
                           ],
                         ),
                       ),
@@ -268,7 +345,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
           // Bottom Filter Panel & Playback Controller (Centered and max 600px width for desktop)
           Positioned(
-            bottom: 24,
+            bottom: MediaQuery.of(context).size.width >= 800 ? 24 : 105,
             left: 0,
             right: 0,
             child: Center(
@@ -279,11 +356,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A).withOpacity(0.95),
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.cyan.withOpacity(0.3)),
+                      border: Border.all(
+                        color: Colors.cyan.withValues(alpha: 0.3),
+                      ),
                       boxShadow: const [
-                        BoxShadow(color: Colors.black54, blurRadius: 15, offset: Offset(0, 5))
+                        BoxShadow(
+                          color: Colors.black54,
+                          blurRadius: 15,
+                          offset: Offset(0, 5),
+                        ),
                       ],
                     ),
                     child: Column(
@@ -307,54 +390,94 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       _historySelectedDate = picked;
                                     });
                                     if (_historySelectedDeviceId != null) {
-                                      _requestHistory(_historySelectedDeviceId!, picked);
+                                      _requestHistory(
+                                        _historySelectedDeviceId!,
+                                        picked,
+                                      );
                                     }
                                   }
                                 },
-                                icon: const Icon(Icons.calendar_today, size: 16, color: Colors.cyan),
+                                icon: const Icon(
+                                  Icons.calendar_today,
+                                  size: 16,
+                                  color: Colors.cyan,
+                                ),
                                 label: Text(
                                   "${_historySelectedDate.year}-${_historySelectedDate.month.toString().padLeft(2, '0')}-${_historySelectedDate.day.toString().padLeft(2, '0')}",
-                                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                  ),
                                 ),
                                 style: OutlinedButton.styleFrom(
                                   side: const BorderSide(color: Colors.white24),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             ElevatedButton(
                               onPressed: () {
-                                final yesterday = DateTime.now().subtract(const Duration(days: 1));
+                                final yesterday = DateTime.now().subtract(
+                                  const Duration(days: 1),
+                                );
                                 setState(() {
                                   _historySelectedDate = yesterday;
                                 });
                                 if (_historySelectedDeviceId != null) {
-                                  _requestHistory(_historySelectedDeviceId!, yesterday);
+                                  _requestHistory(
+                                    _historySelectedDeviceId!,
+                                    yesterday,
+                                  );
                                 }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.cyan.shade900,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                               ),
-                              child: const Text('Yesterday', style: TextStyle(fontSize: 12, color: Colors.cyanAccent)),
+                              child: const Text(
+                                'Yesterday',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.cyanAccent,
+                                ),
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 12),
 
                         // List of devices
-                        const Text('Select Car / Device ID:', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                        const Text(
+                          'Select Car / Device ID:',
+                          style: TextStyle(color: Colors.grey, fontSize: 11),
+                        ),
                         const SizedBox(height: 6),
                         if (_historyDevices.isEmpty)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('No devices found in database.', style: TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic)),
+                              const Text(
+                                'No devices found in database.',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
                               IconButton(
-                                icon: const Icon(Icons.refresh, size: 16, color: Colors.cyan),
+                                icon: const Icon(
+                                  Icons.refresh,
+                                  size: 16,
+                                  color: Colors.cyan,
+                                ),
                                 onPressed: _requestDevicesList,
-                              )
+                              ),
                             ],
                           )
                         else
@@ -363,30 +486,49 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             child: ListView(
                               scrollDirection: Axis.horizontal,
                               children: _historyDevices.map((devId) {
-                                final isSelected = devId == _historySelectedDeviceId;
+                                final isSelected =
+                                    devId == _historySelectedDeviceId;
                                 return GestureDetector(
                                   onTap: () {
-                                    _requestHistory(devId, _historySelectedDate);
+                                    _requestHistory(
+                                      devId,
+                                      _historySelectedDate,
+                                    );
                                   },
                                   child: Container(
                                     margin: const EdgeInsets.only(right: 8),
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: isSelected ? Colors.cyan : const Color(0xFF1E293B),
+                                      color: isSelected
+                                          ? Colors.cyan
+                                          : const Color(0xFF1E293B),
                                       borderRadius: BorderRadius.circular(10),
                                       border: Border.all(
-                                        color: isSelected ? Colors.cyanAccent : Colors.white10,
+                                        color: isSelected
+                                            ? Colors.cyanAccent
+                                            : Colors.white10,
                                         width: 1,
                                       ),
                                     ),
                                     child: Center(
                                       child: Row(
                                         children: [
-                                          const Icon(Icons.directions_car, size: 14, color: Colors.white),
+                                          const Icon(
+                                            Icons.directions_car,
+                                            size: 14,
+                                            color: Colors.white,
+                                          ),
                                           const SizedBox(width: 6),
                                           Text(
                                             devId,
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 11,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -402,7 +544,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           const Center(
                             child: Padding(
                               padding: EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(color: Colors.cyan),
+                              child: CircularProgressIndicator(
+                                color: Colors.cyan,
+                              ),
                             ),
                           )
                         else if (_historyRoutePoints.isNotEmpty) ...[
@@ -412,11 +556,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             children: [
                               Text(
                                 'Route points: ${_historyRoutePoints.length}',
-                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
                               Text(
                                 'Point: ${_historyPlaybackIndex + 1}/${_historyRoutePoints.length}',
-                                style: const TextStyle(fontSize: 12, color: Colors.cyanAccent),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.cyanAccent,
+                                ),
                               ),
                             ],
                           ),
@@ -430,7 +580,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               setState(() {
                                 _historyPlaybackIndex = val.toInt();
                               });
-                              _mapController.move(_historyRoutePoints[_historyPlaybackIndex], _mapController.camera.zoom);
+                              _mapController.move(
+                                _getMapCenterWithOffset(
+                                  _historyRoutePoints[_historyPlaybackIndex],
+                                ),
+                                _mapController.camera.zoom,
+                              );
                             },
                           ),
                           Container(
@@ -442,7 +597,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             child: Column(
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
                                   children: [
                                     _buildTelemetryTile(
                                       Icons.speed,
@@ -458,7 +614,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
                                   children: [
                                     _buildTelemetryTile(
                                       Icons.cloud,
@@ -486,18 +643,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             child: Center(
                               child: Text(
                                 'No history coordinates recorded for this date.',
-                                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic, fontSize: 13),
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontStyle: FontStyle.italic,
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
-                          )
-                        ]
+                          ),
+                        ],
                       ],
                     ),
                   ),
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

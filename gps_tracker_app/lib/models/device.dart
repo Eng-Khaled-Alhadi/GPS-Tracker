@@ -13,6 +13,7 @@ class Device {
   final String statusFlags;
   final DateTime lastUpdated;
   final List<LatLng> history;
+  final bool enabled;
   
   // Custom metadata fields
   final String? name;
@@ -33,6 +34,7 @@ class Device {
     required this.statusFlags,
     required this.lastUpdated,
     required this.history,
+    this.enabled = true,
     this.name,
     this.color,
     this.carType,
@@ -77,6 +79,7 @@ class Device {
       statusFlags: json['statusFlags'] ?? '0x00000000',
       lastUpdated: DateTime.parse(json['lastUpdated'] ?? DateTime.now().toIso8601String()),
       history: updatedHistory,
+      enabled: json['enabled'] ?? true,
       name: json['name']?.toString(),
       color: json['color']?.toString(),
       carType: json['carType']?.toString(),
