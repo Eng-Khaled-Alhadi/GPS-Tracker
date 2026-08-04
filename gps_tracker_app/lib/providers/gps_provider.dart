@@ -6,12 +6,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/device.dart';
 import '../models/overspeed_alert.dart';
 
+final defaultAddress = "ws://176.45.55.56:8081";
+
 class GPSProvider extends ChangeNotifier {
   final _secureStorage = const FlutterSecureStorage();
   WebSocketChannel? _channel;
   bool _isConnected = false;
   bool _isConnecting = false;
-  String _serverAddress = 'ws://176.45.55.56:8081';
+  String _serverAddress = defaultAddress;
   String _currentRole = 'viewer';
   String _currentUsername = 'Guest';
   String _token = '';

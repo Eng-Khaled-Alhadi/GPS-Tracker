@@ -18,9 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController(text: 'admin');
   final _passwordController = TextEditingController(text: '');
-  final _serverController = TextEditingController(
-    text: 'ws://176.45.55.56:8081',
-  );
+  late final _serverController = TextEditingController(text: defaultAddress);
 
   bool _isLoading = false;
   String? _errorMessage;

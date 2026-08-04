@@ -638,7 +638,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                   //     provider.toggleTheme(val);
                                   //   },
                                   // ),
-                                  // const Divider(height: 32),
+                                  const Divider(height: 32),
                                   const Text(
                                     'Accent Color',
                                     style: TextStyle(
