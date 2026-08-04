@@ -10,11 +10,11 @@
     <array>
         <string>/usr/bin/java</string>
         <string>-jar</string>
-        <string>/Users/eagle/Documents/GitHub/GPS-Tracker/gps_tracker_backend/target/tracker-0.0.1-SNAPSHOT.jar</string>
+        <string>/Users/eagleimac/Documents/GitHub/GPS-Tracker/gps_tracker_backend/target/tracker-0.0.1-SNAPSHOT.jar</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/eagle/Documents/GitHub/GPS-Tracker/gps_tracker_backend</string>
+    <string>/Users/eagleimac/Documents/GitHub/GPS-Tracker/gps_tracker_backend</string>
 
     <!-- Only needed if your local DB differs from the built-in defaults
          (localhost:3306, user root, password root, db gps_tracker).
@@ -28,7 +28,7 @@
         <key>DB_USER</key>
         <string>root</string>
         <key>DB_PASSWORD</key>
-        <string>root</string>
+        <string></string>
         <key>DB_NAME</key>
         <string>gps_tracker</string>
     </dict>
