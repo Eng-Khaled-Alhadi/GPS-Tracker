@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController(text: 'admin');
   final _passwordController = TextEditingController(text: '');
   final _serverController = TextEditingController(
-    text: 'ws://localhost:8080',
+    text: 'ws://176.45.55.56:3000',
   );
 
   bool _isLoading = false;
@@ -103,14 +103,18 @@ class _LoginScreenState extends State<LoginScreen> {
           channel.sink.close();
 
           // Initialize provider state
-          Provider.of<GPSProvider>(
-            context,
-            listen: false,
-          ).initializeSession(role: role, username: user, serverUrl: serverUrl, token: token);
+          Provider.of<GPSProvider>(context, listen: false).initializeSession(
+            role: role,
+            username: user,
+            serverUrl: serverUrl,
+            token: token,
+          );
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+            MaterialPageRoute(
+              builder: (context) => const MainNavigationScreen(),
+            ),
           );
         }
       } else {

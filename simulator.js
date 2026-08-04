@@ -5,8 +5,12 @@
 
 const net = require('net');
 
-const SERVER_HOST = '127.0.0.1';
-const SERVER_PORT = 8000;
+// const SERVER_HOST = '127.0.0.1';
+// const SERVER_PORT = 8000;
+
+//ws://176.45.55.56:3000
+const SERVER_HOST = '176.45.55.56';
+const SERVER_PORT = 3000;
 const SEND_INTERVAL_MS = 3000; // Send location every 3 seconds
 
 // 3 Simulated cars with different IDs, starting coordinates, speed, and heading
@@ -154,7 +158,7 @@ console.log(`Connecting to JT808 Gateway Server at ${SERVER_HOST}:${SERVER_PORT}
 
 client.connect(SERVER_PORT, SERVER_HOST, () => {
     console.log('Connected to gateway! Starting car simulations...');
-    
+
     // Start simulation loop
     setInterval(() => {
         cars.forEach((car) => {
