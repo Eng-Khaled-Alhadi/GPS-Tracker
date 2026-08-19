@@ -406,8 +406,6 @@ class _GPSDashboardState extends State<GPSDashboard> {
   }
 
   void _showAdminSettingsDialog(GPSProvider provider) {
-
-
     provider.fetchUsers();
 
     final usernameController = TextEditingController();
@@ -984,7 +982,6 @@ class _GPSDashboardState extends State<GPSDashboard> {
                           ),
                         ),
                       ),
-
 
                       const SizedBox(width: 12),
                       FloatingActionButton.small(

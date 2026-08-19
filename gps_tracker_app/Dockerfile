@@ -18,6 +18,7 @@ RUN flutter build web --release --dart-define=SERVER_HOST=$SERVER_HOST
 
 # Stage 2: Serve Flutter Web with Nginx
 FROM nginx:alpine
+RUN rm -rf /usr/share/nginx/html/*
 COPY --from=build /app/build/web /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
