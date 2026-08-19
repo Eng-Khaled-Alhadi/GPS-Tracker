@@ -36,8 +36,9 @@ services:
       DB_USER: root
       DB_PASSWORD: ${DB_PASSWORD:-rootpassword}
     ports:
-      - "8000:8000"       # JT808 GPS Terminal TCP Port
-      - "8081:8081"       # Spring Boot REST & WebSocket Port
+      - "8000:8000"       # JT808 GPS Terminal TCP Port (must stay public for GPS hardware)
+    expose:
+      - "8081"            # REST & WebSocket Port - internal only, reached via gps-web's Nginx proxy
     networks:
       - gps_network
 
