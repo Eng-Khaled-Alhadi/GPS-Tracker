@@ -18,6 +18,7 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen>
     with SingleTickerProviderStateMixin {
+  late PageController _pageController;
   int _currentIndex = 0;
   StreamSubscription<OverspeedAlert>? _alertSubscription;
 
@@ -30,6 +31,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
 
     _bannerAnimController = AnimationController(
       vsync: this,
@@ -53,6 +55,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
 
   @override
   void dispose() {
+    _pageController.dispose();
     _alertSubscription?.cancel();
     _bannerAnimController.dispose();
     _bannerTimer?.cancel();
@@ -80,11 +83,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   }
 
   void _onTabSelected(int index) {
-    if (_currentIndex != index) {
-      setState(() {
-        _currentIndex = index;
-      });
-    }
+    setState(() {
+      _currentIndex = index;
+    });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -94,7 +100,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     final isWeb = size.width >= 800;
     final theme = Theme.of(context);
 
-    // Using IndexedStack preserves state of all screens without flickering, unmounting, or losing map state
     final List<Widget> screens = [
       const GPSDashboard(),
       const CarsScreen(),
@@ -106,45 +111,47 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     ];
 
     final List<_NavItem> navItems = [
-      _NavItem(Icons.map_outlined, Icons.map, 'Live Map'),
+      _NavItem(Icons.map_outlined, Icons.map, 'Map'),
       _NavItem(Icons.directions_car_outlined, Icons.directions_car, 'Fleet'),
       _NavItem(Icons.timeline_outlined, Icons.timeline, 'History'),
-      _NavItem(
-        Icons.tune_outlined,
-        Icons.tune,
-        'Settings',
-        badge: provider.unreadAlertsCount > 0 ? provider.unreadAlertsCount : null,
-      ),
+      _NavItem(Icons.tune_outlined, Icons.tune, 'Settings',
+          badge: provider.unreadAlertsCount > 0
+              ? provider.unreadAlertsCount
+              : null),
     ];
 
     // === WEB LAYOUT: Left Sidebar ===
     Widget webLayout = Row(
       children: [
         Container(
-          width: 88,
+          width: 80,
           margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
           decoration: BoxDecoration(
             color: const Color(0xFF0F1523),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
           ),
           child: Column(
             children: [
               const SizedBox(height: 20),
-              // Brand Logo icon
+              // Connection indicator
               Container(
-                width: 44,
-                height: 44,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  color: provider.isConnected
+                      ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                      : const Color(0xFFEF4444).withValues(alpha: 0.15),
                 ),
-                child: Center(
-                  child: Icon(
-                    Icons.gps_fixed_rounded,
-                    color: theme.colorScheme.primary,
-                    size: 24,
-                  ),
+                child: Icon(
+                  provider.isConnected
+                      ? Icons.sensors
+                      : Icons.sensors_off,
+                  color: provider.isConnected
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFFEF4444),
+                  size: 20,
                 ),
               ),
               const SizedBox(height: 28),
@@ -156,7 +163,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                   itemBuilder: (context, index) {
                     final item = navItems[index];
                     final isSelected = _currentIndex == index;
-                    return _buildWebNavItem(item, isSelected, index, theme);
+                    return _buildWebNavItem(
+                      item, isSelected, index, theme,
+                    );
                   },
                 ),
               ),
@@ -183,10 +192,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                     Text(
                       provider.currentRole.toUpperCase(),
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.4),
-                        fontSize: 9,
+                        color: Colors.white.withValues(alpha: 0.3),
+                        fontSize: 8,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 0.8,
+                        letterSpacing: 1,
                       ),
                     ),
                   ],
@@ -196,19 +205,21 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
           ),
         ),
         Expanded(
-          child: IndexedStack(
-            index: _currentIndex,
+          child: PageView(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(),
             children: screens,
           ),
         ),
       ],
     );
 
-    // === MOBILE LAYOUT: Floating Bottom Bar ===
+    // === MOBILE LAYOUT: Bottom Floating Nav ===
     Widget mobileLayout = Stack(
       children: [
-        IndexedStack(
-          index: _currentIndex,
+        PageView(
+          controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
           children: screens,
         ),
         Positioned(
@@ -224,12 +235,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                 child: Container(
                   height: 68,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F1523).withValues(alpha: 0.88),
+                    color: const Color(0xFF0F1523).withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.35),
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -240,7 +251,9 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                     children: List.generate(navItems.length, (index) {
                       final item = navItems[index];
                       final isSelected = _currentIndex == index;
-                      return _buildMobileNavItem(item, isSelected, index, theme);
+                      return _buildMobileNavItem(
+                        item, isSelected, index, theme,
+                      );
                     }),
                   ),
                 ),
@@ -346,10 +359,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   }
 
   Widget _buildWebNavItem(
-    _NavItem item,
-    bool isSelected,
-    int index,
-    ThemeData theme,
+    _NavItem item, bool isSelected, int index, ThemeData theme,
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -425,10 +435,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
   }
 
   Widget _buildMobileNavItem(
-    _NavItem item,
-    bool isSelected,
-    int index,
-    ThemeData theme,
+    _NavItem item, bool isSelected, int index, ThemeData theme,
   ) {
     return Expanded(
       child: GestureDetector(
@@ -445,7 +452,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                        ? theme.colorScheme.primary.withValues(alpha: 0.12)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(20),
                   ),

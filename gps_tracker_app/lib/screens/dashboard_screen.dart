@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../models/device.dart';
 import '../providers/gps_provider.dart';
 
+
 class GPSDashboard extends StatefulWidget {
   const GPSDashboard({super.key});
 
@@ -40,6 +41,151 @@ class _GPSDashboardState extends State<GPSDashboard> {
       provider.selectDevice(device.id);
       _mapController.move(LatLng(device.latitude, device.longitude), 15.0);
     }
+  }
+
+  void _showCarInfoBottomSheet(BuildContext context, Device device) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF141B2D),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: (_parseColor(device.color ?? '') ??
+                                      Theme.of(context).colorScheme.primary)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.directions_car_rounded,
+                              color: _parseColor(device.color ?? '') ??
+                                  Theme.of(context).colorScheme.primary,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                device.displayName,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              if (device.carType != null && device.carType!.isNotEmpty)
+                                Text(
+                                  device.carType!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close_rounded,
+                            color: Colors.white.withValues(alpha: 0.4)),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  Divider(color: Colors.white.withValues(alpha: 0.06), height: 28),
+                  _buildDetailRow(Icons.speed_rounded, 'Speed',
+                      '${device.speed.toStringAsFixed(1)} km/h'),
+                  _buildDetailRow(Icons.explore_rounded, 'Direction',
+                      '${device.direction.toStringAsFixed(0)}°'),
+                  _buildDetailRow(Icons.landscape_rounded, 'Altitude',
+                      '${device.altitude.toStringAsFixed(0)}m'),
+                  _buildDetailRow(Icons.access_time_rounded, 'GPS Time',
+                      device.gpsTime),
+                  _buildDetailRow(Icons.my_location_rounded, 'Coordinates',
+                      '${device.latitude.toStringAsFixed(6)}, ${device.longitude.toStringAsFixed(6)}'),
+                  if (device.additionalData != null &&
+                      device.additionalData!.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    Text(
+                      'METADATA',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withValues(alpha: 0.3),
+                        fontSize: 11,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...device.additionalData!.entries.map(
+                      (entry) => _buildDetailRow(
+                        Icons.info_outline_rounded,
+                        entry.key,
+                        entry.value.toString(),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white.withValues(alpha: 0.3), size: 17),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showEditMetadataDialog(Device device) {
@@ -197,6 +343,334 @@ class _GPSDashboardState extends State<GPSDashboard> {
     );
   }
 
+  void _showServerConfigDialog(GPSProvider provider) {
+    final controller = TextEditingController(text: provider.serverAddress);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Server Configuration'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Enter WebSocket server URL',
+                style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  labelText: 'WebSocket URL',
+                  hintText: 'wss://tracking.qutma.com/ws',
+                  prefixIcon: Icon(Icons.link_rounded),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                provider.initializeSession(
+                  role: provider.currentRole,
+                  username: provider.currentUsername,
+                  serverUrl: controller.text.trim(),
+                  token: provider.token,
+                );
+                Navigator.pop(context);
+              },
+              child: const Text('Connect'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showAdminSettingsDialog(GPSProvider provider) {
+    provider.fetchUsers();
+
+    final usernameController = TextEditingController();
+    final passwordController = TextEditingController();
+    String selectedRole = 'viewer';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return DefaultTabController(
+              length: 2,
+              child: AlertDialog(
+                title: const Text('Admin Panel'),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                content: SizedBox(
+                  width: 500,
+                  height: 420,
+                  child: Column(
+                    children: [
+                      const TabBar(
+                        tabs: [
+                          Tab(icon: Icon(Icons.manage_accounts_outlined),
+                              text: 'Users'),
+                          Tab(icon: Icon(Icons.palette_outlined),
+                              text: 'Theme'),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: TabBarView(
+                          children: [
+                            // Users Tab
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ExpansionTile(
+                                  title: const Text('Add New User',
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600)),
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        children: [
+                                          TextField(
+                                            controller: usernameController,
+                                            decoration: const InputDecoration(
+                                              labelText: 'Username',
+                                              isDense: true,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          TextField(
+                                            controller: passwordController,
+                                            obscureText: true,
+                                            decoration: const InputDecoration(
+                                              labelText: 'Password',
+                                              isDense: true,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          DropdownButtonFormField<String>(
+                                            initialValue: selectedRole,
+                                            decoration: const InputDecoration(
+                                              labelText: 'Role',
+                                              isDense: true,
+                                            ),
+                                            items: const [
+                                              DropdownMenuItem(
+                                                  value: 'admin',
+                                                  child: Text('Admin')),
+                                              DropdownMenuItem(
+                                                  value: 'editor',
+                                                  child: Text('Editor')),
+                                              DropdownMenuItem(
+                                                  value: 'viewer',
+                                                  child: Text('Viewer')),
+                                            ],
+                                            onChanged: (val) {
+                                              if (val != null) {
+                                                setDialogState(
+                                                    () => selectedRole = val);
+                                              }
+                                            },
+                                          ),
+                                          const SizedBox(height: 12),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              final user =
+                                                  usernameController.text.trim();
+                                              final pass =
+                                                  passwordController.text;
+                                              if (user.isNotEmpty &&
+                                                  pass.isNotEmpty) {
+                                                provider.createUser(
+                                                    user, pass, selectedRole);
+                                                usernameController.clear();
+                                                passwordController.clear();
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(SnackBar(
+                                                  content: Text(
+                                                      'Creating user "$user"...'),
+                                                ));
+                                              }
+                                            },
+                                            child: const Text('Add User'),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Divider(),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 4),
+                                  child: Text(
+                                    'Existing Users',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                      color: Colors.white.withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: provider.users.isEmpty
+                                      ? Center(
+                                          child: Text('Loading...',
+                                              style: TextStyle(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.3))))
+                                      : ListView.builder(
+                                          itemCount: provider.users.length,
+                                          itemBuilder: (context, index) {
+                                            final u = provider.users[index];
+                                            final isSelf = u['username'] ==
+                                                provider.currentUsername;
+                                            return ListTile(
+                                              title:
+                                                  Text(u['username'] ?? ''),
+                                              subtitle: Text(
+                                                  'Role: ${u['role']}'),
+                                              dense: true,
+                                              trailing: isSelf
+                                                  ? Container(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 3),
+                                                      decoration: BoxDecoration(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .primary
+                                                            .withValues(
+                                                                alpha: 0.1),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(6),
+                                                      ),
+                                                      child: Text('You',
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .colorScheme
+                                                                .primary,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w700,
+                                                          )),
+                                                    )
+                                                  : IconButton(
+                                                      icon: const Icon(
+                                                          Icons.delete_outline,
+                                                          color:
+                                                              Colors.redAccent,
+                                                          size: 20),
+                                                      onPressed: () {
+                                                        provider.deleteUser(
+                                                            u['id']);
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                                'Deleting "${u['username']}"...'),
+                                                          ),
+                                                        );
+                                                      },
+                                                    ),
+                                            );
+                                          },
+                                        ),
+                                ),
+                              ],
+                            ),
+                            // Theme Tab
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Divider(height: 32),
+                                  Text(
+                                    'Accent Color',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                      color: Colors.white.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      _colorDot(provider, Colors.blueAccent, 'Blue'),
+                                      _colorDot(provider, Colors.greenAccent, 'Green'),
+                                      _colorDot(provider, Colors.orangeAccent, 'Orange'),
+                                      _colorDot(provider, Colors.purpleAccent, 'Purple'),
+                                      _colorDot(provider, Colors.redAccent, 'Red'),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _colorDot(GPSProvider provider, Color color, String name) {
+    final isSelected = provider.accentColor.toARGB32() == color.toARGB32();
+    return GestureDetector(
+      onTap: () => provider.setAccentColor(color),
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.transparent,
+            width: 3,
+          ),
+          boxShadow: [
+            if (isSelected)
+              BoxShadow(
+                color: color.withValues(alpha: 0.5),
+                blurRadius: 8,
+                spreadRadius: 2,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<GPSProvider>(context);
@@ -338,79 +812,103 @@ class _GPSDashboardState extends State<GPSDashboard> {
             ],
           ),
 
-          // === Top Status Pill ===
+          // === Top Status Chip ===
           Positioned(
             top: isWeb ? 16 : 50,
             left: 16,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F1523).withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.08)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+            child: Row(
+              children: [
+                // Connection chip
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F1523).withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.06)),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: provider.isConnected
-                              ? const Color(0xFF10B981)
-                              : provider.isConnecting
-                                  ? Colors.amber
-                                  : const Color(0xFFEF4444),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (provider.isConnected
-                                      ? const Color(0xFF10B981)
-                                      : const Color(0xFFEF4444))
-                                  .withValues(alpha: 0.5),
-                              blurRadius: 6,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: provider.isConnected
+                                  ? const Color(0xFF10B981)
+                                  : provider.isConnecting
+                                      ? Colors.amber
+                                      : const Color(0xFFEF4444),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (provider.isConnected
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFFEF4444))
+                                      .withValues(alpha: 0.5),
+                                  blurRadius: 6,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            provider.isConnected
+                                ? 'Live'
+                                : provider.isConnecting
+                                    ? 'Reconnecting'
+                                    : 'Offline',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            ' • ${provider.currentUsername}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withValues(alpha: 0.4),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        provider.isConnected
-                            ? 'Live'
-                            : provider.isConnecting
-                                ? 'Connecting'
-                                : 'Offline',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '(${devices.length} active)',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.4),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                if (provider.currentRole == 'admin') ...[
+                  const SizedBox(width: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Material(
+                        color: const Color(0xFF0F1523).withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          onTap: () => _showAdminSettingsDialog(provider),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.06)),
+                            ),
+                            child: const Icon(Icons.admin_panel_settings_outlined,
+                                color: Colors.amber, size: 20),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
 
@@ -419,59 +917,32 @@ class _GPSDashboardState extends State<GPSDashboard> {
             top: isWeb ? 16 : 50,
             right: 16,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: Material(
                   color: provider.autoFollow
                       ? theme.colorScheme.primary
-                      : const Color(0xFF0F1523).withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(16),
+                      : const Color(0xFF0F1523).withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(14),
                   child: InkWell(
                     onTap: () {
                       provider.setAutoFollow(!provider.autoFollow);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            provider.autoFollow
-                                ? 'Auto-follow enabled'
-                                : 'Auto-follow disabled',
-                          ),
-                          duration: const Duration(milliseconds: 900),
-                        ),
-                      );
                     },
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.08)),
+                            color: Colors.white.withValues(alpha: 0.06)),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            provider.autoFollow
-                                ? Icons.gps_fixed_rounded
-                                : Icons.gps_not_fixed_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Follow',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white.withValues(
-                                alpha: provider.autoFollow ? 1.0 : 0.6,
-                              ),
-                            ),
-                          ),
-                        ],
+                      child: Icon(
+                        provider.autoFollow
+                            ? Icons.gps_fixed_rounded
+                            : Icons.gps_not_fixed_rounded,
+                        color: Colors.white,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -493,10 +964,10 @@ class _GPSDashboardState extends State<GPSDashboard> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Device selector horizontal list
+                      // Device selector chips
                       if (devices.isNotEmpty)
                         SizedBox(
-                          height: 46,
+                          height: 48,
                           child: ListView(
                             scrollDirection: Axis.horizontal,
                             children: devices.map((device) {
@@ -507,7 +978,6 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                       .difference(device.lastUpdated)
                                       .inSeconds <
                                   30;
-
                               return GestureDetector(
                                 onTap: () => _focusDevice(provider, device),
                                 onLongPress: () =>
@@ -515,28 +985,19 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                 child: Container(
                                   margin: const EdgeInsets.only(right: 8),
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 6),
+                                      horizontal: 14, vertical: 8),
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? theme.colorScheme.primary
                                         : const Color(0xFF141B2D)
-                                            .withValues(alpha: 0.92),
+                                            .withValues(alpha: 0.9),
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(
                                       color: isSelected
                                           ? theme.colorScheme.primary
                                           : Colors.white
-                                              .withValues(alpha: 0.08),
+                                              .withValues(alpha: 0.06),
                                     ),
-                                    boxShadow: [
-                                      if (isSelected)
-                                        BoxShadow(
-                                          color: theme.colorScheme.primary
-                                              .withValues(alpha: 0.35),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                    ],
                                   ),
                                   child: Row(
                                     children: [
@@ -548,7 +1009,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                           color: isRecentlyUpdated
                                               ? const Color(0xFF10B981)
                                               : Colors.white
-                                                  .withValues(alpha: 0.3),
+                                                  .withValues(alpha: 0.2),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -566,7 +1027,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                               color: isSelected
                                                   ? Colors.white
                                                   : Colors.white
-                                                      .withValues(alpha: 0.9),
+                                                      .withValues(alpha: 0.8),
                                             ),
                                           ),
                                           Text(
@@ -574,9 +1035,9 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                             style: TextStyle(
                                               color: isSelected
                                                   ? Colors.white
-                                                      .withValues(alpha: 0.8)
+                                                      .withValues(alpha: 0.7)
                                                   : Colors.white
-                                                      .withValues(alpha: 0.4),
+                                                      .withValues(alpha: 0.35),
                                               fontSize: 10,
                                             ),
                                           ),
@@ -602,18 +1063,11 @@ class _GPSDashboardState extends State<GPSDashboard> {
                               padding: const EdgeInsets.all(18),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF141B2D)
-                                    .withValues(alpha: 0.94),
+                                    .withValues(alpha: 0.92),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                     color:
-                                        Colors.white.withValues(alpha: 0.08)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.3),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
+                                        Colors.white.withValues(alpha: 0.06)),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -624,13 +1078,13 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           color: theme.colorScheme.primary
-                                              .withValues(alpha: 0.15),
+                                              .withValues(alpha: 0.12),
                                           borderRadius:
                                               BorderRadius.circular(10),
                                         ),
-                                        child: Icon(Icons.directions_car_rounded,
+                                        child: Icon(Icons.sensors_rounded,
                                             color: theme.colorScheme.primary,
-                                            size: 20),
+                                            size: 18),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
@@ -648,14 +1102,18 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                               overflow:
                                                   TextOverflow.ellipsis,
                                             ),
-                                            Text(
-                                              'ID: ${selectedDevice.id}${selectedDevice.carType != null && selectedDevice.carType!.trim().isNotEmpty ? ' • ${selectedDevice.carType}' : ''}',
-                                              style: TextStyle(
-                                                color: Colors.white
-                                                    .withValues(alpha: 0.4),
-                                                fontSize: 11,
+                                            if (selectedDevice.carType != null &&
+                                                selectedDevice.carType!
+                                                    .trim()
+                                                    .isNotEmpty)
+                                              Text(
+                                                selectedDevice.carType!,
+                                                style: TextStyle(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.35),
+                                                  fontSize: 11,
+                                                ),
                                               ),
-                                            ),
                                           ],
                                         ),
                                       ),
@@ -664,7 +1122,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                             selectedDevice.lastUpdated),
                                         style: TextStyle(
                                           color: Colors.white
-                                              .withValues(alpha: 0.35),
+                                              .withValues(alpha: 0.3),
                                           fontSize: 11,
                                         ),
                                       ),
@@ -672,19 +1130,18 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                         IconButton(
                                           icon: Icon(Icons.edit_outlined,
                                               color: Colors.white
-                                                  .withValues(alpha: 0.4),
-                                              size: 18),
+                                                  .withValues(alpha: 0.3),
+                                              size: 17),
                                           onPressed: () =>
                                               _showEditMetadataDialog(
                                                   selectedDevice),
-                                          tooltip: 'Edit Vehicle',
                                         ),
                                     ],
                                   ),
                                   Divider(
                                       color:
                                           Colors.white.withValues(alpha: 0.06),
-                                      height: 20),
+                                      height: 22),
                                   // Telemetry grid
                                   Row(
                                     children: [
@@ -711,7 +1168,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                       Expanded(
                                           child: _buildTelemetryTile(
                                               Icons.schedule_rounded,
-                                              'GPS Time',
+                                              'Time',
                                               selectedDevice.gpsTime
                                                   .split(' ')
                                                   .last)),
@@ -720,8 +1177,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                   const SizedBox(height: 10),
                                   // Coordinates bar
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 8),
+                                    padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
                                       color:
                                           Colors.white.withValues(alpha: 0.04),
@@ -732,21 +1188,21 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                           MainAxisAlignment.spaceAround,
                                       children: [
                                         Text(
-                                          'Lat: ${selectedDevice.latitude.toStringAsFixed(5)}',
+                                          'Lat: ${selectedDevice.latitude.toStringAsFixed(6)}',
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontFamily: 'monospace',
                                             color: Colors.white
-                                                .withValues(alpha: 0.6),
+                                                .withValues(alpha: 0.5),
                                           ),
                                         ),
                                         Text(
-                                          'Lon: ${selectedDevice.longitude.toStringAsFixed(5)}',
+                                          'Lon: ${selectedDevice.longitude.toStringAsFixed(6)}',
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontFamily: 'monospace',
                                             color: Colors.white
-                                                .withValues(alpha: 0.6),
+                                                .withValues(alpha: 0.5),
                                           ),
                                         ),
                                       ],
@@ -755,7 +1211,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                   if (selectedDevice.additionalData != null &&
                                       selectedDevice
                                           .additionalData!.isNotEmpty) ...[
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 10),
                                     Wrap(
                                       spacing: 6,
                                       runSpacing: 4,
@@ -764,7 +1220,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                           .map((entry) {
                                         return Container(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 3),
+                                              horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
                                             color: Colors.white
                                                 .withValues(alpha: 0.04),
@@ -792,21 +1248,20 @@ class _GPSDashboardState extends State<GPSDashboard> {
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
-                              vertical: 20, horizontal: 16),
+                              vertical: 24, horizontal: 16),
                           decoration: BoxDecoration(
                             color: const Color(0xFF141B2D)
-                                .withValues(alpha: 0.88),
+                                .withValues(alpha: 0.85),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Center(
                             child: Text(
                               devices.isEmpty
-                                  ? 'Waiting for active devices to connect...'
-                                  : 'Select a vehicle above to focus on map',
+                                  ? 'Waiting for devices to connect...'
+                                  : 'Select a vehicle to view details',
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.35),
+                                color: Colors.white.withValues(alpha: 0.3),
                                 fontStyle: FontStyle.italic,
-                                fontSize: 13,
                               ),
                             ),
                           ),
@@ -872,7 +1327,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
               color: Theme.of(context)
                   .colorScheme
                   .primary
-                  .withValues(alpha: 0.7)),
+                  .withValues(alpha: 0.6)),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -880,7 +1335,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
               Text(
                 label,
                 style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4), fontSize: 10),
+                    color: Colors.white.withValues(alpha: 0.35), fontSize: 10),
               ),
               Text(
                 value,
