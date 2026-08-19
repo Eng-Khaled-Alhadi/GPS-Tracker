@@ -1,9 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gps_tracker_app/providers/gps_provider.dart';
 import 'package:provider/provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/dashboard_screen.dart';
 import 'screens/main_navigation_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(
@@ -20,7 +21,6 @@ class GPSApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gpsProvider = Provider.of<GPSProvider>(context);
-    // final isDark = gpsProvider.isDarkTheme;
     final accentColor = gpsProvider.accentColor;
 
     final baseTheme = ThemeData.dark();
@@ -29,7 +29,7 @@ class GPSApp extends StatelessWidget {
     const textColor = Colors.white;
 
     return MaterialApp(
-      title: 'Active GPS Fleet Tracker',
+      title: 'QUTMA - GPS Fleet Tracker',
       debugShowCheckedModeBanner: false,
       theme: baseTheme.copyWith(
         scaffoldBackgroundColor: scaffoldBg,
@@ -51,24 +51,29 @@ class GPSApp extends StatelessWidget {
           ),
         ),
       ),
-      home: FutureBuilder<bool>(
-        future: Provider.of<GPSProvider>(
-          context,
-          listen: false,
-        ).loadSavedSession(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              !snapshot.hasData) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          if (snapshot.data == true) {
-            return const MainNavigationScreen();
-          }
-          return const LoginScreen();
-        },
-      ),
+      // On web, skip the in-app splash since index.html pre-loader already handles it
+      home: kIsWeb
+          ? FutureBuilder<bool>(
+              future: Provider.of<GPSProvider>(
+                context,
+                listen: false,
+              ).loadSavedSession(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    backgroundColor: Color(0xFF070B14),
+                    body: SizedBox.shrink(),
+                  );
+                }
+                if (snapshot.data == true) {
+                  return const MainNavigationScreen();
+                }
+                return const LoginScreen();
+              },
+            )
+          : const SplashScreen(),
     );
   }
 }
+
+

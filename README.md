@@ -25,9 +25,11 @@ graph TD
 
 2. **Fleet Tracker Dashboard (`gps_tracker_app/`)**:
    - Built with **Flutter** (Dart), supporting cross-platform builds (Android, iOS, Web, Windows, macOS).
+   - Dynamic **Lottie GPS Radar Splash Screen** with auto session restoration.
    - Uses `flutter_map` for rich interactive open-street map visualization.
    - Live telemetry panel displaying device-specific information (speedometer, bearing, altitude, status flags, alarm notifications).
    - Auto-follows selected devices and renders breadcrumb trails/historical routes.
+
 
 ---
 

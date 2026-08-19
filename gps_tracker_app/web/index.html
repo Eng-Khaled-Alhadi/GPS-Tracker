@@ -1,38 +1,222 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="QUTMA - Real-Time GPS Fleet Tracking & Telemetry System">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="gps_tracker_app">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="QUTMA GPS">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>gps_tracker_app</title>
+  <title>QUTMA - GPS Fleet Tracker</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #070B14;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    #web-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #1E293B 0%, #0F172A 60%, #070B14 100%);
+      color: #ffffff;
+      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+    }
+
+    #web-splash.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .radar-container {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+
+    /* Concentric Radar Rings */
+    .radar-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0, 229, 255, 0.15);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.05);
+    }
+    .ring-1 { width: 80px; height: 80px; }
+    .ring-2 { width: 140px; height: 140px; }
+    .ring-3 { width: 200px; height: 200px; border-color: rgba(0, 229, 255, 0.25); }
+
+    /* Radar Scanning Sweep */
+    .radar-sweep {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(0, 229, 255, 0.45) 0deg, rgba(0, 229, 255, 0) 65deg);
+      animation: radar-spin 2.2s linear infinite;
+    }
+
+    /* Glowing Center Pin */
+    .radar-center-pin {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #00E5FF;
+      box-shadow: 0 0 20px #00E5FF, 0 0 40px rgba(0, 229, 255, 0.6);
+      animation: pulse-pin 1.5s ease-in-out infinite alternate;
+      z-index: 2;
+    }
+
+    /* Orbiting Telemetry Dot */
+    .orbit-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #FFB300;
+      box-shadow: 0 0 10px #FFB300;
+      top: 30px;
+      left: 150px;
+      animation: orbit-pulse 1.8s ease-in-out infinite alternate;
+    }
+
+    /* Brand Logo Text */
+    .brand-title {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    .brand-title span {
+      color: #00E5FF;
+      text-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+    }
+
+    .brand-subtitle {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    /* Status Capsule */
+    .status-capsule {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 20px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      letter-spacing: 0.5px;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(0, 229, 255, 0.2);
+      border-top-color: #00E5FF;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes radar-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes pulse-pin {
+      from { transform: scale(0.9); opacity: 0.8; }
+      to { transform: scale(1.2); opacity: 1; }
+    }
+    @keyframes orbit-pulse {
+      from { opacity: 0.3; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1.3); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
+  <!-- Web Pre-loader Splash Screen -->
+  <div id="web-splash">
+    <div class="radar-container">
+      <div class="radar-ring ring-1"></div>
+      <div class="radar-ring ring-2"></div>
+      <div class="radar-ring ring-3"></div>
+      <div class="radar-sweep"></div>
+      <div class="orbit-dot"></div>
+      <div class="radar-center-pin"></div>
+    </div>
+
+    <div class="brand-title">QUT<span>MA</span></div>
+    <div class="brand-subtitle">GPS Fleet Tracking & Telemetry</div>
+
+    <div class="status-capsule">
+      <div class="spinner"></div>
+      <span id="splash-status">Loading web dashboard...</span>
+    </div>
+  </div>
+
+  <script>
+    // Smoothly dismiss web splash once Flutter engine mounts
+    window.addEventListener('flutter-first-frame', function () {
+      var splash = document.getElementById('web-splash');
+      if (splash) {
+        splash.classList.add('fade-out');
+        setTimeout(function () {
+          if (splash.parentNode) splash.parentNode.removeChild(splash);
+        }, 650);
+      }
+    });
+
+    // Fallback timer in case event is missed
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        var splash = document.getElementById('web-splash');
+        if (splash && !splash.classList.contains('fade-out')) {
+          splash.classList.add('fade-out');
+          setTimeout(function () {
+            if (splash.parentNode) splash.parentNode.removeChild(splash);
+          }, 650);
+        }
+      }, 3500);
+    });
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
