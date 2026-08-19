@@ -6,10 +6,31 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/device.dart';
 import '../models/overspeed_alert.dart';
 
-const String _envHost = String.fromEnvironment('SERVER_HOST', defaultValue: '176.45.55.56');
-final String defaultAddress = _envHost.startsWith('ws://') || _envHost.startsWith('wss://')
-    ? _envHost
-    : (_envHost.contains(':') ? "ws://$_envHost" : "ws://$_envHost:8081");
+import 'package:flutter/foundation.dart';
+
+String getResolvedDefaultAddress() {
+  if (kIsWeb) {
+    final uri = Uri.base;
+    if (uri.scheme == 'https') {
+      final portStr = (uri.port != 443 && uri.port != 0 && uri.port != 80) ? ':${uri.port}' : '';
+      return 'wss://${uri.host}$portStr/ws';
+    } else if (uri.scheme == 'http' && uri.host.isNotEmpty) {
+      final portStr = (uri.port != 80 && uri.port != 0) ? ':${uri.port}' : '';
+      return 'ws://${uri.host}$portStr/ws';
+    }
+  }
+  const String envHost = String.fromEnvironment('SERVER_HOST', defaultValue: 'qutma.com');
+  if (envHost.startsWith('ws://') || envHost.startsWith('wss://')) {
+    return envHost;
+  }
+  if (envHost.contains('.') && !RegExp(r'^\d+\.\d+\.\d+\.\d+$').hasMatch(envHost)) {
+    return 'wss://$envHost/ws';
+  }
+  return envHost.contains(':') ? "ws://$envHost" : "ws://$envHost:8081";
+}
+
+final String defaultAddress = getResolvedDefaultAddress();
+
 
 
 class GPSProvider extends ChangeNotifier {
