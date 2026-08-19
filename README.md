@@ -36,6 +36,7 @@ graph TD
 ### 1. Prerequisite Setup
 
 Ensure you have the following installed on your machine:
+
 - **Node.js** (v16.0.0 or higher)
 - **MySQL Database Server**
 - **Flutter SDK** (v3.10.8 or higher)
@@ -48,19 +49,21 @@ Ensure you have the following installed on your machine:
 The backend acts as the gateway to parse incoming TCP streams and store/broadcast them.
 
 #### Database Configurations (Environment Variables)
+
 The server uses environment variables to establish a MySQL connection. You can customize them or rely on defaults:
 
-| Variable | Description | Default |
-|---|---|---|
-| `DB_HOST` | Hostname of the MySQL Server | `localhost` |
-| `DB_PORT` | Port of the MySQL Server | `3306` |
-| `DB_USER` | Username to connect to MySQL | `root` |
-| `DB_PASSWORD` | Password to connect to MySQL | `""` (empty) |
-| `DB_NAME` | Database to store GPS telemetry | `gps_tracker` |
+| Variable      | Description                     | Default       |
+| ------------- | ------------------------------- | ------------- |
+| `DB_HOST`     | Hostname of the MySQL Server    | `localhost`   |
+| `DB_PORT`     | Port of the MySQL Server        | `3306`        |
+| `DB_USER`     | Username to connect to MySQL    | `root`        |
+| `DB_PASSWORD` | Password to connect to MySQL    | `""` (empty)  |
+| `DB_NAME`     | Database to store GPS telemetry | `gps_tracker` |
 
-*Note: The server will automatically create the database (`gps_tracker`) and the necessary tables (`devices`, `device_history`, `device_logs`) on the first startup if they do not exist.*
+_Note: The server will automatically create the database (`gps_tracker`) and the necessary tables (`devices`, `device_history`, `device_logs`) on the first startup if they do not exist._
 
 #### Steps to Run:
+
 1. Navigate to the project root:
    ```bash
    cd "GPS Tracker"
@@ -79,6 +82,7 @@ The server uses environment variables to establish a MySQL connection. You can c
    ```
 
 Upon startup, the server initializes:
+
 - **Database Schema** (automatically creates tables).
 - **TCP Port 8000** for JT808 clients/trackers.
 - **HTTP Port 8000** (upgrades to WebSocket `/`) for dashboard app connections.
@@ -101,7 +105,9 @@ flutter run
 ```
 
 #### Configuring the Connection
+
 When the application opens, configure the WebSocket server address:
+
 - If running locally: `ws://localhost:8000` or `ws://10.0.2.2:8000` (for Android emulator).
 - If deployed to a remote server, input your server's IP address (e.g., `ws://your-server-ip:8000`).
 
@@ -122,8 +128,30 @@ node simulator.js
 
 The gateway server implements core aspects of the JT808 protocol specification:
 
-*   **Message Framing**: Packets delimited by `0x7E`.
-*   **Escape Character Processing**: Reverses escaping of `0x7D 0x02` to `0x7E` and `0x7D 0x01` to `0x7D`.
-*   **Header Parsing**: Extracting Message ID, Phone/Terminal Number (6-byte BCD representation), and Serial Number.
-*   **Checksum Verification**: XOR checksum validation of the payload against the trailing check byte.
-*   **Response Handling**: Automatically replies with standard platform general acknowledgments (`0x8001`) to the trackers to maintain connection stability.
+- **Message Framing**: Packets delimited by `0x7E`.
+- **Escape Character Processing**: Reverses escaping of `0x7D 0x02` to `0x7E` and `0x7D 0x01` to `0x7D`.
+- **Header Parsing**: Extracting Message ID, Phone/Terminal Number (6-byte BCD representation), and Serial Number.
+- **Checksum Verification**: XOR checksum validation of the payload against the trailing check byte.
+- **Response Handling**: Automatically replies with standard platform general acknowledgments (`0x8001`) to the trackers to maintain connection stability.
+
+---
+
+## 🐳 Docker Deployment (Ubuntu Server)
+
+To deploy the backend and database stack quickly using Docker on Ubuntu:
+
+```bash
+# 1. Clone the repository and navigate to root
+git clone git@github.com:Eng-Khaled-Alhadi/GPS-Tracker.git
+cd GPS-Tracker
+
+# 2. (Optional) Customize passwords in .env
+echo "DB_PASSWORD=your_secure_password" > .env
+
+# 3. Start services with Docker Compose
+docker compose up -d --build
+
+# 4. Check status & logs
+docker compose ps
+docker compose logs -f gps-backend
+```
