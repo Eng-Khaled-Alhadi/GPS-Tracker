@@ -6,7 +6,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../providers/gps_provider.dart';
 import 'main_navigation_screen.dart';
 
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -37,7 +36,6 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    const serverUrl = defaultAddress;
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
@@ -45,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
     StreamSubscription? subscription;
 
     try {
-      final uri = Uri.parse(serverUrl);
+      final uri = Uri.parse(defaultAddress);
       channel = WebSocketChannel.connect(uri);
 
       // Set timeout for handshake
@@ -102,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Provider.of<GPSProvider>(context, listen: false).initializeSession(
             role: role,
             username: user,
-            serverUrl: serverUrl,
+            serverUrl: defaultAddress,
             token: token,
           );
 
@@ -137,8 +135,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
-
-
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
@@ -232,7 +228,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // Input Fields
                       TextFormField(
-
                         controller: _usernameController,
                         style: const TextStyle(fontSize: 14),
                         decoration: const InputDecoration(
