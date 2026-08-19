@@ -367,7 +367,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Enter WebSocket server URL (e.g. wss://qutma.com/ws or ws://ip:8081).',
+                'Enter WebSocket server URL (e.g. wss://tracking.qutma.com/ws or ws://ip:8081).',
                 style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
               const SizedBox(height: 16),
@@ -375,7 +375,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                 controller: controller,
                 decoration: const InputDecoration(
                   labelText: 'WebSocket URL',
-                  hintText: 'wss://qutma.com/ws',
+                  hintText: 'wss://tracking.qutma.com/ws',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.link),
                 ),

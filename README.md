@@ -108,7 +108,7 @@ flutter run
 
 When the application opens, the WebSocket server address defaults automatically based on the environment:
 
-- For HTTPS Domain (Production): `wss://qutma.com/ws`
+- For HTTPS Domain (Production): `wss://tracking.qutma.com/ws`
 - For Direct Server IP: `ws://176.45.55.56:8081`
 - For Local Development: `ws://localhost:8081` (or `ws://10.0.2.2:8081` for Android emulator)
 - You can tap the **"Server: ..."** button on the login screen to change the address at any time.
