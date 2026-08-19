@@ -1,6 +1,7 @@
 /node_modules
 /gps_tracker_backend/target
 .env
+*.env
 ssl/*.pem
 certbot/
 
