@@ -138,8 +138,12 @@ The gateway server implements core aspects of the JT808 protocol specification:
 
 ## 🐳 Docker Deployment (Ubuntu Server)
 
-To deploy the backend and database stack quickly using Docker on Ubuntu:
+The Docker setup runs 3 services in isolated containers:
+1. **`gps_mysql`**: MySQL 8.0 database with persistent storage.
+2. **`gps_backend`**: Spring Boot + Netty server (TCP Port `8000` for trackers, REST/WebSocket Port `8081` for dashboard).
+3. **`gps_web`**: Flutter Web dashboard served through Nginx (Port `80`).
 
+### Manual Launch:
 ```bash
 # 1. Clone the repository and navigate to root
 git clone git@github.com:Eng-Khaled-Alhadi/GPS-Tracker.git
@@ -148,10 +152,28 @@ cd GPS-Tracker
 # 2. (Optional) Customize passwords in .env
 echo "DB_PASSWORD=your_secure_password" > .env
 
-# 3. Start services with Docker Compose
+# 3. Start all services (MySQL, Backend, Flutter Web)
 docker compose up -d --build
 
 # 4. Check status & logs
 docker compose ps
-docker compose logs -f gps-backend
+docker compose logs -f
 ```
+
+---
+
+## ⚡ Automated Deployment on Push (GitHub Actions)
+
+When you push updates to `master` / `main`, GitHub Actions will automatically SSH into your Ubuntu server and redeploy your Docker containers.
+
+### Setup GitHub Secrets:
+In your GitHub repository: **Settings > Secrets and variables > Actions > New repository secret**:
+
+| Secret Name | Description | Example |
+|---|---|---|
+| `SERVER_HOST` | Ubuntu server IP or domain | `176.45.55.56` |
+| `SERVER_USER` | SSH Username on server | `ubuntu` or `root` |
+| `SERVER_SSH_KEY` | Private SSH key (`~/.ssh/id_rsa` or `id_ed25519`) | `-----BEGIN OPENSSH PRIVATE KEY----- ...` |
+| `SERVER_PORT` | SSH Port (optional, defaults to 22) | `22` |
+| `SERVER_APP_PATH` | Path to repo on server (optional, defaults to `~/GPS-Tracker`) | `/home/ubuntu/GPS-Tracker` |
+

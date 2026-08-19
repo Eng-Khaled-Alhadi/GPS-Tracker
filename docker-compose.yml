@@ -39,6 +39,17 @@ services:
     networks:
       - gps_network
 
+  gps-web:
+    build:
+      context: ./gps_tracker_app
+      dockerfile: Dockerfile
+    container_name: gps_web
+    restart: unless-stopped
+    ports:
+      - "80:80"           # Flutter Web Dashboard Port
+    networks:
+      - gps_network
+
 volumes:
   mysql_data:
     driver: local
@@ -46,3 +57,4 @@ volumes:
 networks:
   gps_network:
     driver: bridge
+

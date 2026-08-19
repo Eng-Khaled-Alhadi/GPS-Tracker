@@ -1,0 +1,39 @@
+name: Auto Deploy to Ubuntu Server
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  deploy:
+    name: Deploy with Docker Compose
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            # Navigate to project directory (set SERVER_APP_PATH secret or default to ~/GPS-Tracker)
+            APP_DIR="${{ secrets.SERVER_APP_PATH || '~/GPS-Tracker' }}"
+            cd $APP_DIR
+
+            echo "🚀 Pulling latest changes from Git..."
+            git pull
+
+            echo "🐳 Rebuilding and restarting Docker containers..."
+            docker compose up -d --build --remove-orphans
+
+            echo "🧹 Cleaning up unused Docker images..."
+            docker image prune -f
+
+            echo "✅ Deployment successful!"
