@@ -15,7 +15,8 @@ class MainNavigationScreen extends StatefulWidget {
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> with SingleTickerProviderStateMixin {
+class _MainNavigationScreenState extends State<MainNavigationScreen>
+    with SingleTickerProviderStateMixin {
   late PageController _pageController;
   int _currentIndex = 0;
   StreamSubscription<OverspeedAlert>? _alertSubscription;
@@ -36,13 +37,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _bannerSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, -1.2),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _bannerAnimController,
-      curve: Curves.easeOutBack,
-    ));
+    _bannerSlideAnimation =
+        Tween<Offset>(begin: const Offset(0, -1.2), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _bannerAnimController,
+            curve: Curves.easeOutBack,
+          ),
+        );
 
     // Listen to overspeed alerts
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -118,9 +119,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
       {'icon': Icons.directions_car, 'label': 'Vehicles'},
       {'icon': Icons.history, 'label': 'History'},
       {
-        'icon': Icons.notifications_active,
+        'icon': Icons.settings,
         'label': 'Settings',
-        'badge': provider.unreadAlertsCount > 0 ? provider.unreadAlertsCount : null
+        'badge': provider.unreadAlertsCount > 0
+            ? provider.unreadAlertsCount
+            : null,
       },
     ];
 
@@ -136,7 +139,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: Colors.white10),
               boxShadow: const [
-                BoxShadow(color: Colors.black38, blurRadius: 10, offset: Offset(2, 2)),
+                BoxShadow(
+                  color: Colors.black38,
+                  blurRadius: 10,
+                  offset: Offset(2, 2),
+                ),
               ],
             ),
             child: Column(
@@ -164,16 +171,22 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                                          ? theme.colorScheme.primary
+                                                .withValues(alpha: 0.2)
                                           : Colors.transparent,
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: Icon(
                                       item['icon'] as IconData,
-                                      color: isSelected ? theme.colorScheme.primary : Colors.white60,
+                                      color: isSelected
+                                          ? theme.colorScheme.primary
+                                          : Colors.white60,
                                       size: 24,
                                     ),
                                   ),
@@ -181,9 +194,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
                                   Text(
                                     item['label'] as String,
                                     style: TextStyle(
-                                      color: isSelected ? Colors.white : Colors.white60,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.white60,
                                       fontSize: 11,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
                                     ),
                                   ),
                                 ],
@@ -281,16 +298,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
                             children: [
                               AnimatedContainer(
                                 duration: const Duration(milliseconds: 250),
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                                      ? theme.colorScheme.primary.withValues(
+                                          alpha: 0.15,
+                                        )
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Icon(
                                   item['icon'] as IconData,
-                                  color: isSelected ? theme.colorScheme.primary : Colors.white60,
+                                  color: isSelected
+                                      ? theme.colorScheme.primary
+                                      : Colors.white60,
                                   size: 24,
                                 ),
                               ),
@@ -298,9 +322,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
                               Text(
                                 item['label'] as String,
                                 style: TextStyle(
-                                  color: isSelected ? Colors.white : Colors.white60,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.white60,
                                   fontSize: 10,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                 ),
                               ),
                             ],
@@ -354,7 +382,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
               position: _bannerSlideAnimation,
               child: SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Material(
@@ -364,9 +395,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7F1D1D), // Dark One UI deep red warning
+                          color: const Color(
+                            0xFF7F1D1D,
+                          ), // Dark One UI deep red warning
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.redAccent, width: 1.5),
+                          border: Border.all(
+                            color: Colors.redAccent,
+                            width: 1.5,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -376,7 +412,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
                                 color: Colors.redAccent,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.warning, color: Colors.white, size: 22),
+                              child: const Icon(
+                                Icons.warning,
+                                color: Colors.white,
+                                size: 22,
+                              ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -409,7 +449,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> with Single
                               onPressed: () {
                                 _bannerAnimController.reverse();
                               },
-                              icon: const Icon(Icons.close, color: Colors.white70),
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white70,
+                              ),
                             ),
                           ],
                         ),

@@ -959,15 +959,15 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.settings,
-                                  color: Colors.blue,
-                                ),
-                                onPressed: () =>
-                                    _showServerConfigDialog(provider),
-                                tooltip: 'Server Settings',
-                              ),
+                              // IconButton(
+                              //   icon: const Icon(
+                              //     Icons.settings,
+                              //     color: Colors.blue,
+                              //   ),
+                              //   onPressed: () =>
+                              //       _showServerConfigDialog(provider),
+                              //   tooltip: 'Server Settings',
+                              // ),
                               if (provider.currentRole == 'admin') ...[
                                 const SizedBox(width: 4),
                                 IconButton(
