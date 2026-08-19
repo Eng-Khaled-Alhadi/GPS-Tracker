@@ -23,18 +23,28 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           script: |
-            # Navigate to project directory (set SERVER_APP_PATH secret or default to ~/GPS-Tracker)
-            APP_DIR="${{ secrets.SERVER_APP_PATH || '~/GPS-Tracker' }}"
-            cd $APP_DIR
+            set -e
 
-            echo "🚀 Pulling latest changes from Git..."
-            git pull
+            # Resolve app directory (expand $HOME properly)
+            APP_DIR="${{ secrets.SERVER_APP_PATH }}"
+            if [ -z "$APP_DIR" ]; then
+              APP_DIR="$HOME/GPS-Tracker"
+            fi
+
+            echo "📂 Navigating to $APP_DIR..."
+            cd "$APP_DIR"
+
+            echo "🚀 Fetching and pulling latest changes for branch ${{ github.ref_name }}..."
+            git fetch origin ${{ github.ref_name }}
+            git checkout ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
 
             echo "🐳 Rebuilding and restarting Docker containers with SERVER_HOST..."
-            SERVER_HOST="${{ secrets.SERVER_HOST }}" docker compose up -d --build --remove-orphans
-
+            export SERVER_HOST="${{ secrets.SERVER_HOST }}"
+            docker compose up -d --build --remove-orphans
 
             echo "🧹 Cleaning up unused Docker images..."
             docker image prune -f
 
-            echo "✅ Deployment successful!"
+            echo "✅ Deployment completed successfully!"
+
