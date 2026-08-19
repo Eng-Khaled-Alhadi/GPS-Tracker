@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/device.dart';
 import '../models/overspeed_alert.dart';
 
-const String defaultAddress = 'wss://qutma.com/ws';
+const String defaultAddress = 'wss://tracking.qutma.com/ws';
 
 
 
