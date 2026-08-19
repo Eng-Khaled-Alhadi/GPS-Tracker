@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../providers/gps_provider.dart';
-import 'dashboard_screen.dart';
 import 'main_navigation_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,7 +18,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController(text: 'admin');
   final _passwordController = TextEditingController(text: '');
-  late final _serverController = TextEditingController(text: defaultAddress);
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -27,7 +26,6 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
-    _serverController.dispose();
     super.dispose();
   }
 
@@ -39,12 +37,13 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    final serverUrl = _serverController.text.trim();
+    final serverUrl = defaultAddress;
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
     WebSocketChannel? channel;
     StreamSubscription? subscription;
+
 
     try {
       final uri = Uri.parse(serverUrl);
@@ -138,53 +137,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _showServerConfigDialog() {
-    final controller = TextEditingController(text: _serverController.text);
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Server Configuration'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Enter WebSocket server URL to stream coordinates and authenticate.',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  labelText: 'WebSocket URL',
-                  hintText: 'ws://your-ip:3000',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.link),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _serverController.text = controller.text.trim();
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
+
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
@@ -277,23 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
 
                       // Input Fields
-                      TextButton.icon(
-                        onPressed: _showServerConfigDialog,
-                        icon: const Icon(
-                          Icons.settings,
-                          size: 16,
-                          color: Colors.blueAccent,
-                        ),
-                        label: Text(
-                          'Server: ${_serverController.text}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       TextFormField(
                         controller: _usernameController,
                         style: const TextStyle(fontSize: 14),

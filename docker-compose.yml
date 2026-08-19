@@ -43,7 +43,10 @@ services:
     build:
       context: ./gps_tracker_app
       dockerfile: Dockerfile
+      args:
+        SERVER_HOST: ${SERVER_HOST:-176.45.55.56}
     container_name: gps_web
+
     restart: unless-stopped
     ports:
       - "80:80"           # HTTP (Redirect to HTTPS & ACME challenge)

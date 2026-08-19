@@ -6,7 +6,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/device.dart';
 import '../models/overspeed_alert.dart';
 
-final defaultAddress = "ws://176.45.55.56:8081";
+const String _envHost = String.fromEnvironment('SERVER_HOST', defaultValue: '176.45.55.56');
+final String defaultAddress = _envHost.startsWith('ws://') || _envHost.startsWith('wss://')
+    ? _envHost
+    : (_envHost.contains(':') ? "ws://$_envHost" : "ws://$_envHost:8081");
+
 
 class GPSProvider extends ChangeNotifier {
   final _secureStorage = const FlutterSecureStorage();

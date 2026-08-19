@@ -356,56 +356,8 @@ class _GPSDashboardState extends State<GPSDashboard> {
     );
   }
 
-  void _showServerConfigDialog(GPSProvider provider) {
-    final controller = TextEditingController(text: provider.serverAddress);
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Server Configuration'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Enter WebSocket server URL to stream coordinates in real-time.',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  labelText: 'WebSocket URL',
-                  hintText: 'ws://your-ip:3000',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.link),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                provider.initializeSession(
-                  role: provider.currentRole,
-                  username: provider.currentUsername,
-                  serverUrl: controller.text.trim(),
-                  token: provider.token,
-                );
-                Navigator.pop(context);
-              },
-              child: const Text('Connect'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _showAdminSettingsDialog(GPSProvider provider) {
+
     provider.fetchUsers();
 
     final usernameController = TextEditingController();
@@ -957,15 +909,6 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.settings,
-                                  color: Colors.blue,
-                                ),
-                                onPressed: () =>
-                                    _showServerConfigDialog(provider),
-                                tooltip: 'Server Settings',
-                              ),
                               if (provider.currentRole == 'admin') ...[
                                 const SizedBox(width: 4),
                                 IconButton(
@@ -982,6 +925,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                           ),
                         ),
                       ),
+
                       const SizedBox(width: 12),
                       FloatingActionButton.small(
                         heroTag: 'btnAutoFollow',

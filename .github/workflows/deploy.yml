@@ -30,8 +30,9 @@ jobs:
             echo "🚀 Pulling latest changes from Git..."
             git pull
 
-            echo "🐳 Rebuilding and restarting Docker containers..."
-            docker compose up -d --build --remove-orphans
+            echo "🐳 Rebuilding and restarting Docker containers with SERVER_HOST..."
+            SERVER_HOST="${{ secrets.SERVER_HOST }}" docker compose up -d --build --remove-orphans
+
 
             echo "🧹 Cleaning up unused Docker images..."
             docker image prune -f
