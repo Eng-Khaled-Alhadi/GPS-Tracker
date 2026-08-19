@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/gps_provider.dart';
@@ -33,6 +32,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     super.initState();
     _pageController = PageController(initialPage: _currentIndex);
 
+    // Setup animated banner controller
     _bannerAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
@@ -45,6 +45,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
           ),
         );
 
+    // Listen to overspeed alerts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<GPSProvider>(context, listen: false);
       _alertSubscription = provider.alertStream.listen((alert) {
@@ -69,6 +70,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     });
     _bannerAnimController.forward();
 
+    // Dismiss banner after 4 seconds
     _bannerTimer = Timer(const Duration(seconds: 4), () {
       if (mounted) {
         _bannerAnimController.reverse().then((_) {
@@ -100,6 +102,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     final isWeb = size.width >= 800;
     final theme = Theme.of(context);
 
+    // Screen list
     final List<Widget> screens = [
       const GPSDashboard(),
       const CarsScreen(),
@@ -110,98 +113,132 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       const SettingsScreen(),
     ];
 
-    final List<_NavItem> navItems = [
-      _NavItem(Icons.map_outlined, Icons.map, 'Map'),
-      _NavItem(Icons.directions_car_outlined, Icons.directions_car, 'Fleet'),
-      _NavItem(Icons.timeline_outlined, Icons.timeline, 'History'),
-      _NavItem(Icons.tune_outlined, Icons.tune, 'Settings',
-          badge: provider.unreadAlertsCount > 0
-              ? provider.unreadAlertsCount
-              : null),
+    // Navigation Tab Data
+    final List<Map<String, dynamic>> navItems = [
+      {'icon': Icons.map, 'label': 'Map'},
+      {'icon': Icons.directions_car, 'label': 'Vehicles'},
+      {'icon': Icons.history, 'label': 'History'},
+      {
+        'icon': Icons.settings,
+        'label': 'Settings',
+        'badge': provider.unreadAlertsCount > 0
+            ? provider.unreadAlertsCount
+            : null,
+      },
     ];
 
-    // === WEB LAYOUT: Left Sidebar ===
+    // Responsive Web Layout: Left Sidebar Navigation
     Widget webLayout = Row(
       children: [
-        Container(
-          width: 80,
-          margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0F1523),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              // Connection indicator
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color: provider.isConnected
-                      ? const Color(0xFF10B981).withValues(alpha: 0.15)
-                      : const Color(0xFFEF4444).withValues(alpha: 0.15),
+        SafeArea(
+          child: Container(
+            width: 90,
+            margin: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white10),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black38,
+                  blurRadius: 10,
+                  offset: Offset(2, 2),
                 ),
-                child: Icon(
-                  provider.isConnected
-                      ? Icons.sensors
-                      : Icons.sensors_off,
-                  color: provider.isConnected
-                      ? const Color(0xFF10B981)
-                      : const Color(0xFFEF4444),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(height: 28),
-              // Nav items
-              Expanded(
-                child: ListView.builder(
-                  itemCount: navItems.length,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  itemBuilder: (context, index) {
-                    final item = navItems[index];
-                    final isSelected = _currentIndex == index;
-                    return _buildWebNavItem(
-                      item, isSelected, index, theme,
-                    );
-                  },
-                ),
-              ),
-              // User avatar
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.2),
-                      child: Text(
-                        provider.currentUsername.isNotEmpty
-                            ? provider.currentUsername[0].toUpperCase()
-                            : '?',
-                        style: TextStyle(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
+              ],
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 24),
+                const Icon(Icons.gps_fixed, color: Colors.cyanAccent, size: 28),
+                const SizedBox(height: 32),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: navItems.length,
+                    itemBuilder: (context, index) {
+                      final item = navItems[index];
+                      final isSelected = _currentIndex == index;
+                      final badgeCount = item['badge'] as int?;
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: InkWell(
+                          onTap: () => _onTabSelected(index),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? theme.colorScheme.primary
+                                                .withValues(alpha: 0.2)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Icon(
+                                      item['icon'] as IconData,
+                                      color: isSelected
+                                          ? theme.colorScheme.primary
+                                          : Colors.white60,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    item['label'] as String,
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.white60,
+                                      fontSize: 11,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (badgeCount != null)
+                                Positioned(
+                                  top: 4,
+                                  right: 18,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.redAccent,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
+                                    child: Text(
+                                      '$badgeCount',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      provider.currentRole.toUpperCase(),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        fontSize: 8,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         Expanded(
@@ -214,7 +251,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       ],
     );
 
-    // === MOBILE LAYOUT: Bottom Floating Nav ===
+    // Responsive Mobile Layout: Bottom Samsung One UI Floating Nav Bar
     Widget mobileLayout = Stack(
       children: [
         PageView(
@@ -225,38 +262,107 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
         Positioned(
           left: 16,
           right: 16,
-          bottom: 16,
+          bottom: 20,
           child: SafeArea(
             bottom: true,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: Container(
-                  height: 68,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F1523).withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+            child: Container(
+              height: 72,
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A).withValues(alpha: 0.88),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(color: Colors.white10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(navItems.length, (index) {
+                  final item = navItems[index];
+                  final isSelected = _currentIndex == index;
+                  final badgeCount = item['badge'] as int?;
+
+                  return Expanded(
+                    child: InkWell(
+                      onTap: () => _onTabSelected(index),
+                      borderRadius: BorderRadius.circular(32),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 250),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? theme.colorScheme.primary.withValues(
+                                          alpha: 0.15,
+                                        )
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Icon(
+                                  item['icon'] as IconData,
+                                  color: isSelected
+                                      ? theme.colorScheme.primary
+                                      : Colors.white60,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                item['label'] as String,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.white60,
+                                  fontSize: 10,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (badgeCount != null)
+                            Positioned(
+                              top: 6,
+                              right: 24,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.redAccent,
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                child: Text(
+                                  '$badgeCount',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: List.generate(navItems.length, (index) {
-                      final item = navItems[index];
-                      final isSelected = _currentIndex == index;
-                      return _buildMobileNavItem(
-                        item, isSelected, index, theme,
-                      );
-                    }),
-                  ),
-                ),
+                    ),
+                  );
+                }),
               ),
             ),
           ),
@@ -264,49 +370,51 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       ],
     );
 
+    // Render layout with overlays
     return Scaffold(
       body: Stack(
         children: [
           isWeb ? webLayout : mobileLayout,
 
-          // Alert Banner
+          // 🚨 Animated Top Warning Banner for Overspeed Events
           if (_activeBannerAlert != null)
             SlideTransition(
               position: _bannerSlideAnimation,
               child: SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   child: Align(
                     alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 500),
+                    child: Material(
+                      elevation: 10,
+                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.transparent,
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7F1D1D),
-                          borderRadius: BorderRadius.circular(18),
+                          color: const Color(
+                            0xFF7F1D1D,
+                          ), // Dark One UI deep red warning
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: const Color(0xFFEF4444).withValues(alpha: 0.4),
+                            color: Colors.redAccent,
+                            width: 1.5,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFEF4444).withValues(alpha: 0.15),
-                              blurRadius: 20,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
                         ),
                         child: Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444).withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(10),
+                              decoration: const BoxDecoration(
+                                color: Colors.redAccent,
+                                shape: BoxShape.circle,
                               ),
                               child: const Icon(
-                                Icons.speed_rounded,
-                                color: Color(0xFFEF4444),
+                                Icons.warning,
+                                color: Colors.white,
                                 size: 22,
                               ),
                             ),
@@ -317,32 +425,33 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'SPEED ALERT',
+                                    'SPEED LIMIT EXCEEDED',
                                     style: TextStyle(
-                                      color: Colors.red[200],
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 1.5,
+                                      color: Colors.red[100],
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    '${_activeBannerAlert!.deviceName} — ${_activeBannerAlert!.speed.toStringAsFixed(1)} km/h',
+                                    '${_activeBannerAlert!.deviceName} is driving at ${_activeBannerAlert!.speed.toStringAsFixed(1)} km/h!',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 14,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                             IconButton(
-                              onPressed: () => _bannerAnimController.reverse(),
-                              icon: Icon(
-                                Icons.close_rounded,
-                                color: Colors.white.withValues(alpha: 0.5),
-                                size: 20,
+                              onPressed: () {
+                                _bannerAnimController.reverse();
+                              },
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white70,
                               ),
                             ),
                           ],
@@ -357,160 +466,4 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       ),
     );
   }
-
-  Widget _buildWebNavItem(
-    _NavItem item, bool isSelected, int index, ThemeData theme,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: InkWell(
-        onTap: () => _onTabSelected(index),
-        borderRadius: BorderRadius.circular(16),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? theme.colorScheme.primary.withValues(alpha: 0.15)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      isSelected ? item.activeIcon : item.icon,
-                      color: isSelected
-                          ? theme.colorScheme.primary
-                          : Colors.white.withValues(alpha: 0.4),
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.label,
-                    style: TextStyle(
-                      color: isSelected
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.4),
-                      fontSize: 10,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              if (item.badge != null)
-                Positioned(
-                  top: 2,
-                  right: 14,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFEF4444),
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: Text(
-                      '${item.badge}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileNavItem(
-    _NavItem item, bool isSelected, int index, ThemeData theme,
-  ) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _onTabSelected(index),
-        behavior: HitTestBehavior.opaque,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? theme.colorScheme.primary.withValues(alpha: 0.12)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    isSelected ? item.activeIcon : item.icon,
-                    color: isSelected
-                        ? theme.colorScheme.primary
-                        : Colors.white.withValues(alpha: 0.4),
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.label,
-                  style: TextStyle(
-                    color: isSelected
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.4),
-                    fontSize: 10,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            if (item.badge != null)
-              Positioned(
-                top: 6,
-                right: 20,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFEF4444),
-                    shape: BoxShape.circle,
-                  ),
-                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                  child: Text(
-                    '${item.badge}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final int? badge;
-
-  _NavItem(this.icon, this.activeIcon, this.label, {this.badge});
 }
