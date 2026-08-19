@@ -36,7 +36,7 @@ class _CarsScreenState extends State<CarsScreen> {
     if (provider.currentRole == 'viewer') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Permission Denied: Viewer role cannot edit car settings.'),
+          content: Text('Permission Denied: Viewer role cannot edit vehicle settings.'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -72,7 +72,7 @@ class _CarsScreenState extends State<CarsScreen> {
                       controller: nameController,
                       decoration: const InputDecoration(
                         labelText: 'Display Name',
-                        hintText: 'e.g. CEO Sedan',
+                        hintText: 'e.g. Delivery Van 01',
                         prefixIcon: Icon(Icons.label_outline, size: 20),
                       ),
                     ),
@@ -81,7 +81,7 @@ class _CarsScreenState extends State<CarsScreen> {
                       controller: colorController,
                       decoration: const InputDecoration(
                         labelText: 'Color (Hex or name)',
-                        hintText: 'e.g. #FF0000 or red',
+                        hintText: 'e.g. #3B82F6 or blue',
                         prefixIcon: Icon(Icons.palette_outlined, size: 20),
                       ),
                     ),
@@ -90,7 +90,7 @@ class _CarsScreenState extends State<CarsScreen> {
                       controller: typeController,
                       decoration: const InputDecoration(
                         labelText: 'Vehicle Type',
-                        hintText: 'e.g. Sedan, SUV, Van',
+                        hintText: 'e.g. Sedan, SUV, Truck, Van',
                         prefixIcon: Icon(Icons.local_shipping_outlined, size: 20),
                       ),
                     ),
@@ -145,8 +145,11 @@ class _CarsScreenState extends State<CarsScreen> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.remove_circle_outline,
-                                  color: Colors.redAccent, size: 18),
+                              icon: const Icon(
+                                Icons.remove_circle_outline,
+                                color: Colors.redAccent,
+                                size: 18,
+                              ),
                               onPressed: () {
                                 setDialogState(() => customFields.remove(field));
                               },
@@ -180,7 +183,7 @@ class _CarsScreenState extends State<CarsScreen> {
                     );
                     Navigator.pop(context);
                   },
-                  child: const Text('Save'),
+                  child: const Text('Save Changes'),
                 ),
               ],
             );
@@ -191,7 +194,7 @@ class _CarsScreenState extends State<CarsScreen> {
   }
 
   Color _parseColor(String? colorStr) {
-    if (colorStr == null || colorStr.isEmpty) return Colors.blueAccent;
+    if (colorStr == null || colorStr.isEmpty) return const Color(0xFF3B82F6);
     try {
       if (colorStr.startsWith('#')) {
         String cleanHex = colorStr.replaceAll('#', '');
@@ -207,9 +210,9 @@ class _CarsScreenState extends State<CarsScreen> {
         'yellow': Colors.yellowAccent,
         'purple': Colors.purpleAccent,
       };
-      return map[colorStr.toLowerCase()] ?? Colors.blueAccent;
+      return map[colorStr.toLowerCase()] ?? const Color(0xFF3B82F6);
     } catch (e) {
-      return Colors.blueAccent;
+      return const Color(0xFF3B82F6);
     }
   }
 
@@ -230,115 +233,120 @@ class _CarsScreenState extends State<CarsScreen> {
                 (d.carType ?? '').toLowerCase().contains(q);
           }).toList();
 
+    final onlineCount = allDevices
+        .where((d) => DateTime.now().difference(d.lastUpdated).inSeconds < 45)
+        .length;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Column(
-        children: [
-          // Header
-          Padding(
-            padding: EdgeInsets.fromLTRB(20, isWeb ? 24 : 52, 20, 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Fleet Vehicles',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${allDevices.length} registered • ${allDevices.where((d) => DateTime.now().difference(d.lastUpdated).inSeconds < 45).length} online',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.45),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: TextField(
-              onChanged: (val) => setState(() => _searchQuery = val),
-              decoration: InputDecoration(
-                hintText: 'Search vehicles...',
-                prefixIcon: Icon(
-                  Icons.search_rounded,
-                  size: 20,
-                  color: Colors.white.withValues(alpha: 0.4),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Vehicle list
-          Expanded(
-            child: devices.isEmpty
-                ? Center(
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: EdgeInsets.fromLTRB(20, isWeb ? 24 : 12, 20, 0),
+              child: Row(
+                children: [
+                  Expanded(
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          _searchQuery.isNotEmpty
-                              ? Icons.search_off_rounded
-                              : Icons.directions_car_outlined,
-                          size: 48,
-                          color: Colors.white.withValues(alpha: 0.15),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          _searchQuery.isNotEmpty
-                              ? 'No vehicles match "$_searchQuery"'
-                              : 'No registered vehicles found',
+                        const Text(
+                          'Fleet Management',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.35),
-                            fontSize: 14,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${allDevices.length} vehicles registered • $onlineCount active',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.45),
                           ),
                         ),
                       ],
                     ),
-                  )
-                : isWeb
-                    ? GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                        gridDelegate:
-                            const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 480,
-                          mainAxisExtent: 145,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
-                        itemCount: devices.length,
-                        itemBuilder: (context, index) =>
-                            _buildCard(provider, devices[index]),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 96),
-                        itemCount: devices.length,
-                        itemBuilder: (context, index) =>
-                            _buildCard(provider, devices[index]),
+                  ),
+                  IconButton(
+                    onPressed: () => provider.fetchDevices(),
+                    icon: const Icon(Icons.refresh_rounded),
+                    tooltip: 'Refresh Fleet',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                onChanged: (val) => setState(() => _searchQuery = val),
+                decoration: InputDecoration(
+                  hintText: 'Search by car name, device ID or type...',
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    size: 20,
+                    color: Colors.white.withValues(alpha: 0.4),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Vehicle list
+            Expanded(
+              child: devices.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _searchQuery.isNotEmpty
+                                ? Icons.search_off_rounded
+                                : Icons.directions_car_outlined,
+                            size: 48,
+                            color: Colors.white.withValues(alpha: 0.15),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _searchQuery.isNotEmpty
+                                ? 'No vehicles match "$_searchQuery"'
+                                : 'No registered vehicles found in system',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.35),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
-          ),
-        ],
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.fromLTRB(
+                        20,
+                        0,
+                        20,
+                        isWeb ? 24 : 100,
+                      ),
+                      itemCount: devices.length,
+                      itemBuilder: (context, index) =>
+                          _buildVehicleCard(provider, devices[index]),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCard(GPSProvider provider, Device device) {
+  Widget _buildVehicleCard(GPSProvider provider, Device device) {
     final isRecentlyUpdated =
         DateTime.now().difference(device.lastUpdated).inSeconds < 45;
     final customColor = _parseColor(device.color);
@@ -350,173 +358,198 @@ class _CarsScreenState extends State<CarsScreen> {
             : '${elapsed.inHours}h ago';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF141B2D),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
-      child: IntrinsicHeight(
-        child: Row(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Color accent bar
+            // Top Accent Line
             Container(
-              width: 4,
-              decoration: BoxDecoration(
-                color: customColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(18),
-                  bottomLeft: Radius.circular(18),
-                ),
-              ),
+              height: 3,
+              color: customColor,
             ),
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        // Vehicle icon
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: customColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.directions_car_rounded,
-                            color: customColor,
-                            size: 20,
-                          ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Row 1: Vehicle info & Status badge + Edit
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: customColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                device.displayName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 15,
-                                  color: Colors.white,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                'ID: ${device.id}${device.carType != null && device.carType!.isNotEmpty ? ' • ${device.carType}' : ''}',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.35),
-                                  fontSize: 11,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
+                        child: Icon(
+                          Icons.directions_car_rounded,
+                          color: customColor,
+                          size: 22,
                         ),
-                        // Status badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: (isRecentlyUpdated
-                                    ? const Color(0xFF10B981)
-                                    : Colors.white.withValues(alpha: 0.1))
-                                .withValues(alpha: isRecentlyUpdated ? 0.12 : 1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: isRecentlyUpdated
-                                      ? const Color(0xFF10B981)
-                                      : Colors.white.withValues(alpha: 0.3),
-                                ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              device.displayName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                                color: Colors.white,
                               ),
-                              const SizedBox(width: 5),
-                              Text(
-                                isRecentlyUpdated ? 'Online' : 'Offline',
-                                style: TextStyle(
-                                  color: isRecentlyUpdated
-                                      ? const Color(0xFF10B981)
-                                      : Colors.white.withValues(alpha: 0.4),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Actions
-                        if (provider.currentRole == 'admin')
-                          Switch(
-                            value: device.enabled,
-                            onChanged: (val) =>
-                                provider.toggleDeviceEnabled(device.id, val),
-                          ),
-                        if (provider.currentRole != 'viewer')
-                          IconButton(
-                            icon: Icon(
-                              Icons.edit_outlined,
-                              color: Colors.white.withValues(alpha: 0.35),
-                              size: 18,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            onPressed: () =>
-                                _showEditMetadataDialog(provider, device),
+                            const SizedBox(height: 2),
+                            Text(
+                              'ID: ${device.id}${device.carType != null && device.carType!.isNotEmpty ? ' • ${device.carType}' : ''}',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.4),
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Status Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: (isRecentlyUpdated
+                                  ? const Color(0xFF10B981)
+                                  : Colors.white.withValues(alpha: 0.1))
+                              .withValues(alpha: isRecentlyUpdated ? 0.15 : 1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isRecentlyUpdated
+                                    ? const Color(0xFF10B981)
+                                    : Colors.white.withValues(alpha: 0.35),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              isRecentlyUpdated ? 'Online' : 'Offline',
+                              style: TextStyle(
+                                color: isRecentlyUpdated
+                                    ? const Color(0xFF10B981)
+                                    : Colors.white.withValues(alpha: 0.45),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (provider.currentRole != 'viewer')
+                        IconButton(
+                          icon: Icon(
+                            Icons.edit_outlined,
+                            color: Colors.white.withValues(alpha: 0.4),
+                            size: 18,
                           ),
-                      ],
+                          onPressed: () => _showEditMetadataDialog(provider, device),
+                          tooltip: 'Edit Vehicle',
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Row 2: Telemetry Metrics
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
                     ),
-                    const SizedBox(height: 12),
-                    // Stats row
-                    Row(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0A0E1A),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildStat(
+                        _buildMetric(
                           Icons.speed_rounded,
                           '${device.speed.toStringAsFixed(1)} km/h',
+                          'Speed',
                         ),
-                        const SizedBox(width: 20),
-                        _buildStat(
+                        _buildMetric(
                           Icons.location_on_outlined,
                           '${device.latitude.toStringAsFixed(4)}, ${device.longitude.toStringAsFixed(4)}',
+                          'Location',
                         ),
-                        const Spacer(),
-                        if (!device.enabled)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Text(
-                              'Pending',
-                              style: TextStyle(
-                                color: Colors.orangeAccent,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        Text(
+                        _buildMetric(
+                          Icons.access_time_rounded,
                           timeAgo,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            fontSize: 11,
+                          'Updated',
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Row 3: Admin Approval Switch if disabled
+                  if (provider.currentRole == 'admin' && !device.enabled) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
                           ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'Pending Approval',
+                            style: TextStyle(
+                              color: Colors.orangeAccent,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            const Text(
+                              'Enable on Map:',
+                              style: TextStyle(fontSize: 11, color: Colors.grey),
+                            ),
+                            const SizedBox(width: 6),
+                            Switch(
+                              value: device.enabled,
+                              onChanged: (val) =>
+                                  provider.toggleDeviceEnabled(device.id, val),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ],
-                ),
+                ],
               ),
             ),
           ],
@@ -525,18 +558,31 @@ class _CarsScreenState extends State<CarsScreen> {
     );
   }
 
-  Widget _buildStat(IconData icon, String value) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+  Widget _buildMetric(IconData icon, String value, String label) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 14, color: Colors.white.withValues(alpha: 0.3)),
-        const SizedBox(width: 5),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: Colors.white.withValues(alpha: 0.35)),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.white.withValues(alpha: 0.4),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
-            color: Colors.white.withValues(alpha: 0.55),
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
         ),
       ],
