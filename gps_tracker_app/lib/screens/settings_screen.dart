@@ -36,6 +36,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _confirmLogout(GPSProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out of your session?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)),
+            onPressed: () async {
+              Navigator.pop(context);
+              await provider.clearSession();
+              if (mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
+            },
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<GPSProvider>(context);
@@ -44,240 +75,329 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final size = MediaQuery.of(context).size;
     final isWeb = size.width >= 800;
 
-    // Build Settings Section
-    Widget settingsSection = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
+    Widget settingsSection = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Profile section
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFF141B2D),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                child: Text(
+                  provider.currentUsername.isNotEmpty
+                      ? provider.currentUsername[0].toUpperCase()
+                      : '?',
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'App Settings',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
+                      provider.currentUsername,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    ListTile(
-                      leading: const Icon(Icons.person),
-                      title: Text(provider.currentUsername),
-                      subtitle: Text('Role: ${provider.currentRole.toUpperCase()}'),
-                    ),
-                    const Divider(),
-                    if (isAdmin) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        'Speed Limit Alert Threshold (km/h)',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Slider(
-                              value: provider.speedLimit.clamp(10, 250).toDouble(),
-                              min: 10,
-                              max: 250,
-                              divisions: 24,
-                              label: '${provider.speedLimit.toStringAsFixed(0)} km/h',
-                              onChanged: (val) => _updateSpeedLimit(val, provider),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 70,
-                            child: TextField(
-                              controller: _speedController,
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 8,
-                                ),
-                                border: OutlineInputBorder(),
-                              ),
-                              onSubmitted: (val) {
-                                final parsed = double.tryParse(val);
-                                if (parsed != null) {
-                                  _updateSpeedLimit(parsed, provider);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Alerts trigger when any vehicle exceeds this speed.',
+                      child: Text(
+                        provider.currentRole.toUpperCase(),
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          fontStyle: FontStyle.italic,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  await provider.clearSession();
-                  if (mounted) {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                      (route) => false,
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(Icons.logout),
-                label: const Text('Log Out'),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+        const SizedBox(height: 16),
 
-    // Build Alerts Logs Section
-    Widget alertsSection = Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Overspeed Logs',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.redAccent,
-                  ),
-                ),
-                if (provider.alerts.isNotEmpty)
-                  TextButton.icon(
-                    onPressed: () => provider.clearAlerts(),
-                    icon: const Icon(
-                      Icons.delete_sweep,
-                      size: 18,
-                      color: Colors.redAccent,
-                    ),
-                    label: const Text(
-                      'Clear All',
-                      style: TextStyle(color: Colors.redAccent),
-                    ),
-                  ),
-              ],
+        // Speed Limit
+        if (isAdmin)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF141B2D),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: provider.alerts.isEmpty
-                  ? const Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.orangeAccent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.speed_rounded,
+                          color: Colors.orangeAccent, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.check_circle_outline,
-                            size: 48,
-                            color: Colors.green,
-                          ),
-                          SizedBox(height: 8),
                           Text(
-                            'No speeding incidents recorded',
-                            style: TextStyle(color: Colors.grey),
+                            'Speed Limit Alert',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            'Alert when vehicles exceed this speed',
+                            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                           ),
                         ],
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: provider.alerts.length,
-                      itemBuilder: (context, index) {
-                        final alert = provider.alerts[index];
-                        final timeStr =
-                            '${alert.timestamp.hour.toString().padLeft(2, '0')}:${alert.timestamp.minute.toString().padLeft(2, '0')}:${alert.timestamp.second.toString().padLeft(2, '0')}';
-                        return Card(
-                          color: theme.scaffoldBackgroundColor.withValues(
-                            alpha: 0.5,
+                    ),
+                    SizedBox(
+                      width: 65,
+                      child: TextField(
+                        controller: _speedController,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 10),
+                          suffixText: 'km/h',
+                          suffixStyle: TextStyle(
+                            fontSize: 9,
+                            color: Colors.white.withValues(alpha: 0.3),
                           ),
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        ),
+                        onSubmitted: (val) {
+                          final parsed = double.tryParse(val);
+                          if (parsed != null) _updateSpeedLimit(parsed, provider);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SliderTheme(
+                  data: theme.sliderTheme.copyWith(
+                    trackHeight: 6,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+                  ),
+                  child: Slider(
+                    value: provider.speedLimit.clamp(10, 250).toDouble(),
+                    min: 10,
+                    max: 250,
+                    divisions: 24,
+                    label: '${provider.speedLimit.toStringAsFixed(0)} km/h',
+                    onChanged: (val) => _updateSpeedLimit(val, provider),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const Spacer(),
+
+        // Logout
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: OutlinedButton.icon(
+            onPressed: () => _confirmLogout(provider),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFEF4444),
+              side: BorderSide(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: const Icon(Icons.logout_rounded, size: 20),
+            label: const Text('Sign Out',
+                style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+
+    Widget alertsSection = Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF141B2D),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.warning_amber_rounded,
+                    color: Color(0xFFEF4444), size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Speed Alerts',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ),
+              if (provider.alerts.isNotEmpty)
+                TextButton(
+                  onPressed: () => provider.clearAlerts(),
+                  child: Text(
+                    'Clear',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.4),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: provider.alerts.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline_rounded,
+                          size: 40,
+                          color: const Color(0xFF10B981).withValues(alpha: 0.5),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'No speed violations recorded',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            fontSize: 13,
                           ),
-                          child: ListTile(
-                            leading: Container(
-                              padding: const EdgeInsets.all(8),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: provider.alerts.length,
+                    itemBuilder: (context, index) {
+                      final alert = provider.alerts[index];
+                      final timeStr =
+                          '${alert.timestamp.hour.toString().padLeft(2, '0')}:${alert.timestamp.minute.toString().padLeft(2, '0')}';
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0A0E1A),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.04),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
                               decoration: BoxDecoration(
-                                color: Colors.redAccent.withValues(alpha: 0.15),
-                                shape: BoxShape.circle,
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Icon(
-                                Icons.speed,
-                                color: Colors.redAccent,
-                                size: 20,
+                                Icons.speed_rounded,
+                                color: Color(0xFFEF4444),
+                                size: 18,
                               ),
                             ),
-                            title: Text(
-                              alert.deviceName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    alert.deviceName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${alert.speed.toStringAsFixed(1)} km/h (limit: ${alert.limit.toStringAsFixed(0)})',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white.withValues(alpha: 0.4),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            subtitle: Text(
-                              'Speed: ${alert.speed.toStringAsFixed(1)} km/h (Limit: ${alert.limit.toStringAsFixed(0)})',
-                              style: const TextStyle(fontSize: 13),
-                            ),
-                            trailing: Text(
+                            Text(
                               timeStr,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 11,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.25),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings & Alerts'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.fromLTRB(20, isWeb ? 24 : 52, 20, isWeb ? 24 : 96),
         child: isWeb
             ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(flex: 4, child: settingsSection),
                   const SizedBox(width: 16),
@@ -287,7 +407,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             : Column(
                 children: [
                   Expanded(flex: 4, child: settingsSection),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   Expanded(flex: 5, child: alertsSection),
                 ],
               ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -130,7 +131,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     if (!mounted) return point;
     final isMobile = MediaQuery.of(context).size.width < 800;
     if (isMobile) {
-      // Shift map center south so the vehicle marker moves up, keeping it out of the bottom card
       return LatLng(point.latitude - 0.008, point.longitude);
     }
     return point;
@@ -183,7 +183,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           _isLoadingHistory = false;
         });
       } else {
-        // Other message types (devices_state, location_update, etc.) — ignore silently
         if (_isLoadingHistory && type != 'devices_state' && type != 'location_update') {
           debugPrint('[HistoryScreen] Unexpected type while loading: $type — full: $parsed');
         }
@@ -196,67 +195,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  Widget _buildTelemetryTile(IconData icon, String label, String value) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: Colors.cyanAccent),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(color: Colors.grey, fontSize: 10),
-            ),
-            Text(
-              value,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isWeb = MediaQuery.of(context).size.width >= 800;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Route History Lookup'),
-        backgroundColor: const Color(0xFF0F172A),
-        elevation: 0,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _isConnected ? Colors.greenAccent : Colors.red,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _isConnected ? 'Connected' : 'Offline',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
       body: Stack(
         children: [
-          // Map Layer
+          // Map
           FlutterMap(
             mapController: _mapController,
             options: const MapOptions(
@@ -274,36 +221,42 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   polylines: [
                     Polyline(
                       points: _historyRoutePoints,
-                      strokeWidth: 5.0,
-                      color: Colors.cyanAccent.withValues(alpha: 0.9),
+                      strokeWidth: 4.0,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.8),
                     ),
                   ],
                 ),
                 MarkerLayer(
                   markers: [
-                    // Start marker (Green)
+                    // Start
                     Marker(
                       point: _historyRoutePoints.first,
-                      width: 40,
-                      height: 40,
-                      child: const Icon(
-                        Icons.play_circle_fill,
-                        color: Colors.greenAccent,
-                        size: 30,
+                      width: 36,
+                      height: 36,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.play_arrow_rounded,
+                            color: Color(0xFF10B981), size: 22),
                       ),
                     ),
-                    // End marker (Red)
+                    // End
                     Marker(
                       point: _historyRoutePoints.last,
-                      width: 40,
-                      height: 40,
-                      child: const Icon(
-                        Icons.stop_circle,
-                        color: Colors.redAccent,
-                        size: 30,
+                      width: 36,
+                      height: 36,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.stop_rounded,
+                            color: Color(0xFFEF4444), size: 22),
                       ),
                     ),
-                    // Playback vehicle marker
+                    // Current playback
                     if (_historyPlaybackIndex < _historyRoutePoints.length)
                       Marker(
                         point: _historyRoutePoints[_historyPlaybackIndex],
@@ -313,26 +266,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 2,
-                              ),
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.8),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 '${_parseNum(_historyPointsData[_historyPlaybackIndex]['speed']).toStringAsFixed(1)} km/h',
                                 style: const TextStyle(
-                                  fontSize: 8,
+                                  fontSize: 9,
                                   color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
-                            const Icon(
-                              Icons.directions_car,
-                              color: Colors.yellowAccent,
-                              size: 28,
+                            Icon(
+                              Icons.directions_car_rounded,
+                              color: theme.colorScheme.primary,
+                              size: 26,
                             ),
                           ],
                         ),
@@ -343,316 +294,404 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ],
           ),
 
-          // Bottom Filter Panel & Playback Controller (Centered and max 600px width for desktop)
+          // Top header
           Positioned(
-            bottom: MediaQuery.of(context).size.width >= 800 ? 24 : 105,
+            top: isWeb ? 16 : 50,
+            left: 16,
+            right: 16,
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F1523).withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.06)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.timeline_rounded,
+                              color: theme.colorScheme.primary, size: 18),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Route History',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F1523).withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.06)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _isConnected
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFFEF4444),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _isConnected ? 'Connected' : 'Offline',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Bottom controls
+          Positioned(
+            bottom: isWeb ? 20 : 100,
             left: 0,
             right: 0,
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
+                constraints: const BoxConstraints(maxWidth: 560),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A).withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.cyan.withValues(alpha: 0.3),
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black54,
-                          blurRadius: 15,
-                          offset: Offset(0, 5),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F1523).withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.06)),
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Filter inputs (Date Picker and Fast Filter Buttons)
-                        Row(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () async {
-                                  final picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: _historySelectedDate,
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime.now(),
-                                  );
-                                  if (picked != null) {
-                                    setState(() {
-                                      _historySelectedDate = picked;
-                                    });
+                            // Date + quick filter
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: _historySelectedDate,
+                                        firstDate: DateTime(2020),
+                                        lastDate: DateTime.now(),
+                                      );
+                                      if (picked != null) {
+                                        setState(() =>
+                                            _historySelectedDate = picked);
+                                        if (_historySelectedDeviceId != null) {
+                                          _requestHistory(
+                                              _historySelectedDeviceId!,
+                                              picked);
+                                        }
+                                      }
+                                    },
+                                    icon: Icon(Icons.calendar_today_rounded,
+                                        size: 15, color: theme.colorScheme.primary),
+                                    label: Text(
+                                      "${_historySelectedDate.year}-${_historySelectedDate.month.toString().padLeft(2, '0')}-${_historySelectedDate.day.toString().padLeft(2, '0')}",
+                                      style: const TextStyle(
+                                          fontSize: 13, color: Colors.white),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: BorderSide(
+                                          color:
+                                              Colors.white.withValues(alpha: 0.1)),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                TextButton(
+                                  onPressed: () {
+                                    final yesterday = DateTime.now()
+                                        .subtract(const Duration(days: 1));
+                                    setState(() =>
+                                        _historySelectedDate = yesterday);
                                     if (_historySelectedDeviceId != null) {
                                       _requestHistory(
-                                        _historySelectedDeviceId!,
-                                        picked,
-                                      );
+                                          _historySelectedDeviceId!,
+                                          yesterday);
                                     }
-                                  }
-                                },
-                                icon: const Icon(
-                                  Icons.calendar_today,
-                                  size: 16,
-                                  color: Colors.cyan,
-                                ),
-                                label: Text(
-                                  "${_historySelectedDate.year}-${_historySelectedDate.month.toString().padLeft(2, '0')}-${_historySelectedDate.day.toString().padLeft(2, '0')}",
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Colors.white24),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            ElevatedButton(
-                              onPressed: () {
-                                final yesterday = DateTime.now().subtract(
-                                  const Duration(days: 1),
-                                );
-                                setState(() {
-                                  _historySelectedDate = yesterday;
-                                });
-                                if (_historySelectedDeviceId != null) {
-                                  _requestHistory(
-                                    _historySelectedDeviceId!,
-                                    yesterday,
-                                  );
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.cyan.shade900,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                              ),
-                              child: const Text(
-                                'Yesterday',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.cyanAccent,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-
-                        // List of devices
-                        const Text(
-                          'Select Car / Device ID:',
-                          style: TextStyle(color: Colors.grey, fontSize: 11),
-                        ),
-                        const SizedBox(height: 6),
-                        if (_historyDevices.isEmpty)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'No devices found in database.',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.refresh,
-                                  size: 16,
-                                  color: Colors.cyan,
-                                ),
-                                onPressed: _requestDevicesList,
-                              ),
-                            ],
-                          )
-                        else
-                          SizedBox(
-                            height: 42,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: _historyDevices.map((devId) {
-                                final isSelected =
-                                    devId == _historySelectedDeviceId;
-                                return GestureDetector(
-                                  onTap: () {
-                                    _requestHistory(
-                                      devId,
-                                      _historySelectedDate,
-                                    );
                                   },
-                                  child: Container(
-                                    margin: const EdgeInsets.only(right: 8),
+                                  style: TextButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Colors.cyan
-                                          : const Color(0xFF1E293B),
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? Colors.cyanAccent
-                                            : Colors.white10,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.directions_car,
-                                            size: 14,
-                                            color: Colors.white,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            devId,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 11,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        horizontal: 14, vertical: 12),
+                                    backgroundColor:
+                                        Colors.white.withValues(alpha: 0.05),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                  child: Text(
+                                    'Yesterday',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white
+                                          .withValues(alpha: 0.6),
                                     ),
                                   ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-
-                        // Route details and playback controls
-                        if (_isLoadingHistory)
-                          const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(
-                                color: Colors.cyan,
-                              ),
-                            ),
-                          )
-                        else if (_historyRoutePoints.isNotEmpty) ...[
-                          const Divider(color: Colors.white10, height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Route points: ${_historyRoutePoints.length}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              Text(
-                                'Point: ${_historyPlaybackIndex + 1}/${_historyRoutePoints.length}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.cyanAccent,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Slider(
-                            min: 0,
-                            max: (_historyRoutePoints.length - 1).toDouble(),
-                            value: _historyPlaybackIndex.toDouble(),
-                            activeColor: Colors.cyanAccent,
-                            inactiveColor: Colors.white24,
-                            onChanged: (val) {
-                              setState(() {
-                                _historyPlaybackIndex = val.toInt();
-                              });
-                              _mapController.move(
-                                _getMapCenterWithOffset(
-                                  _historyRoutePoints[_historyPlaybackIndex],
-                                ),
-                                _mapController.camera.zoom,
-                              );
-                            },
-                          ),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.black26,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    _buildTelemetryTile(
-                                      Icons.speed,
-                                      'Speed',
-                                      '${_parseNum(_historyPointsData[_historyPlaybackIndex]['speed']).toStringAsFixed(1)} km/h',
-                                    ),
-                                    _buildTelemetryTile(
-                                      Icons.explore,
-                                      'Bearing',
-                                      '${_parseNum(_historyPointsData[_historyPlaybackIndex]['direction']).toStringAsFixed(0)}°',
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    _buildTelemetryTile(
-                                      Icons.cloud,
-                                      'Altitude',
-                                      '${_parseNum(_historyPointsData[_historyPlaybackIndex]['altitude']).toStringAsFixed(0)}m',
-                                    ),
-                                    _buildTelemetryTile(
-                                      Icons.timer,
-                                      'GPS Time',
-                                      _historyPointsData[_historyPlaybackIndex]['gps_time']
-                                          .toString()
-                                          .replaceAll('T', ' ')
-                                          .replaceAll('Z', '')
-                                          .split('.')
-                                          .first,
-                                    ),
-                                  ],
                                 ),
                               ],
                             ),
-                          ),
-                        ] else if (_historySelectedDeviceId != null) ...[
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16.0),
-                            child: Center(
-                              child: Text(
-                                'No history coordinates recorded for this date.',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontStyle: FontStyle.italic,
-                                  fontSize: 13,
-                                ),
+                            const SizedBox(height: 14),
+
+                            // Device chips
+                            Text(
+                              'SELECT VEHICLE',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1,
                               ),
                             ),
-                          ),
-                        ],
-                      ],
+                            const SizedBox(height: 8),
+                            if (_historyDevices.isEmpty)
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'No devices found',
+                                    style: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.3),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.refresh_rounded,
+                                        size: 16,
+                                        color: theme.colorScheme.primary),
+                                    onPressed: _requestDevicesList,
+                                  ),
+                                ],
+                              )
+                            else
+                              SizedBox(
+                                height: 40,
+                                child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  children: _historyDevices.map((devId) {
+                                    final isSelected =
+                                        devId == _historySelectedDeviceId;
+                                    return GestureDetector(
+                                      onTap: () => _requestHistory(
+                                          devId, _historySelectedDate),
+                                      child: Container(
+                                        margin:
+                                            const EdgeInsets.only(right: 8),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 14, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? theme.colorScheme.primary
+                                              : Colors.white
+                                                  .withValues(alpha: 0.05),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.directions_car_rounded,
+                                              size: 14,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : Colors.white.withValues(
+                                                      alpha: 0.5),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              devId,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 12,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : Colors.white.withValues(
+                                                        alpha: 0.6),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+
+                            // Playback
+                            if (_isLoadingHistory)
+                              Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: theme.colorScheme.primary,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            else if (_historyRoutePoints.isNotEmpty) ...[
+                              Divider(
+                                  color: Colors.white.withValues(alpha: 0.06),
+                                  height: 24),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${_historyRoutePoints.length} points',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color:
+                                          Colors.white.withValues(alpha: 0.35),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${_historyPlaybackIndex + 1}/${_historyRoutePoints.length}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Slider(
+                                min: 0,
+                                max: (_historyRoutePoints.length - 1)
+                                    .toDouble(),
+                                value: _historyPlaybackIndex.toDouble(),
+                                onChanged: (val) {
+                                  setState(() =>
+                                      _historyPlaybackIndex = val.toInt());
+                                  _mapController.move(
+                                    _getMapCenterWithOffset(
+                                        _historyRoutePoints[
+                                            _historyPlaybackIndex]),
+                                    _mapController.camera.zoom,
+                                  );
+                                },
+                              ),
+                              // Telemetry
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.04),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        _buildTelemetryTile(
+                                          Icons.speed_rounded,
+                                          'Speed',
+                                          '${_parseNum(_historyPointsData[_historyPlaybackIndex]['speed']).toStringAsFixed(1)} km/h',
+                                        ),
+                                        _buildTelemetryTile(
+                                          Icons.explore_rounded,
+                                          'Bearing',
+                                          '${_parseNum(_historyPointsData[_historyPlaybackIndex]['direction']).toStringAsFixed(0)}°',
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        _buildTelemetryTile(
+                                          Icons.cloud_outlined,
+                                          'Altitude',
+                                          '${_parseNum(_historyPointsData[_historyPlaybackIndex]['altitude']).toStringAsFixed(0)}m',
+                                        ),
+                                        _buildTelemetryTile(
+                                          Icons.schedule_rounded,
+                                          'Time',
+                                          _historyPointsData[_historyPlaybackIndex]
+                                                  ['gps_time']
+                                              .toString()
+                                              .replaceAll('T', ' ')
+                                              .replaceAll('Z', '')
+                                              .split('.')
+                                              .first,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ] else if (_historySelectedDeviceId != null) ...[
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 18),
+                                child: Center(
+                                  child: Text(
+                                    'No history data for this date',
+                                    style: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.3),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -661,6 +700,40 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTelemetryTile(IconData icon, String label, String value) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon,
+            size: 15,
+            color: Theme.of(context)
+                .colorScheme
+                .primary
+                .withValues(alpha: 0.6)),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.35), fontSize: 10),
+            ),
+            Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

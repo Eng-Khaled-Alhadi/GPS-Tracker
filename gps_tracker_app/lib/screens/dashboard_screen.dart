@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../models/device.dart';
 import '../providers/gps_provider.dart';
-import 'history_screen.dart';
-import 'cars_screen.dart';
+
 
 class GPSDashboard extends StatefulWidget {
   const GPSDashboard({super.key});
@@ -24,9 +24,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
   void initState() {
     super.initState();
     _uiTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {});
-      }
+      if (mounted) setState(() {});
     });
   }
 
@@ -54,19 +52,18 @@ class _GPSDashboardState extends State<GPSDashboard> {
         return Container(
           margin: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white10),
-            boxShadow: const [
+            color: const Color(0xFF141B2D),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            boxShadow: [
               BoxShadow(
-                color: Colors.black54,
-                blurRadius: 20,
-                offset: Offset(0, 8),
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
           child: SafeArea(
-            // mainAxisSize: MainAxisSize.min,
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -78,72 +75,79 @@ class _GPSDashboardState extends State<GPSDashboard> {
                     children: [
                       Row(
                         children: [
-                          Icon(
-                            Icons.directions_car,
-                            color:
-                                _parseColor(device.color ?? '') ??
-                                Colors.cyanAccent,
-                            size: 28,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            device.displayName,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: (_parseColor(device.color ?? '') ??
+                                      Theme.of(context).colorScheme.primary)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            child: Icon(
+                              Icons.directions_car_rounded,
+                              color: _parseColor(device.color ?? '') ??
+                                  Theme.of(context).colorScheme.primary,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                device.displayName,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              if (device.carType != null && device.carType!.isNotEmpty)
+                                Text(
+                                  device.carType!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                            ],
                           ),
                         ],
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white70),
+                        icon: Icon(Icons.close_rounded,
+                            color: Colors.white.withValues(alpha: 0.4)),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
-                  const Divider(color: Colors.white10),
-                  const SizedBox(height: 12),
-                  _buildDetailRow(
-                    Icons.speed,
-                    'Speed',
-                    '${device.speed.toStringAsFixed(1)} km/h',
-                  ),
-                  _buildDetailRow(
-                    Icons.explore,
-                    'Direction',
-                    '${device.direction.toStringAsFixed(0)}°',
-                  ),
-                  _buildDetailRow(
-                    Icons.landscape,
-                    'Altitude',
-                    '${device.altitude.toStringAsFixed(0)}m',
-                  ),
-                  _buildDetailRow(
-                    Icons.access_time,
-                    'GPS Time',
-                    device.gpsTime,
-                  ),
-                  _buildDetailRow(
-                    Icons.my_location,
-                    'Coordinates',
-                    '${device.latitude.toStringAsFixed(6)}, ${device.longitude.toStringAsFixed(6)}',
-                  ),
+                  Divider(color: Colors.white.withValues(alpha: 0.06), height: 28),
+                  _buildDetailRow(Icons.speed_rounded, 'Speed',
+                      '${device.speed.toStringAsFixed(1)} km/h'),
+                  _buildDetailRow(Icons.explore_rounded, 'Direction',
+                      '${device.direction.toStringAsFixed(0)}°'),
+                  _buildDetailRow(Icons.landscape_rounded, 'Altitude',
+                      '${device.altitude.toStringAsFixed(0)}m'),
+                  _buildDetailRow(Icons.access_time_rounded, 'GPS Time',
+                      device.gpsTime),
+                  _buildDetailRow(Icons.my_location_rounded, 'Coordinates',
+                      '${device.latitude.toStringAsFixed(6)}, ${device.longitude.toStringAsFixed(6)}'),
                   if (device.additionalData != null &&
                       device.additionalData!.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Additional Metadata',
+                    const SizedBox(height: 14),
+                    Text(
+                      'METADATA',
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.cyanAccent,
-                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withValues(alpha: 0.3),
+                        fontSize: 11,
+                        letterSpacing: 1,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     ...device.additionalData!.entries.map(
                       (entry) => _buildDetailRow(
-                        Icons.info_outline,
+                        Icons.info_outline_rounded,
                         entry.key,
                         entry.value.toString(),
                       ),
@@ -160,21 +164,22 @@ class _GPSDashboardState extends State<GPSDashboard> {
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         children: [
-          Icon(icon, color: Colors.white60, size: 18),
-          const SizedBox(width: 10),
+          Icon(icon, color: Colors.white.withValues(alpha: 0.3), size: 17),
+          const SizedBox(width: 12),
           Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+            style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
           ),
           const Spacer(),
           Text(
             value,
             style: const TextStyle(
               color: Colors.white,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               fontSize: 13,
             ),
           ),
@@ -188,9 +193,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
     if (gpsProvider.currentRole == 'viewer') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Permission Denied: Viewer role cannot edit car settings.',
-          ),
+          content: Text('Permission Denied: Viewer role cannot edit.'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -202,15 +205,13 @@ class _GPSDashboardState extends State<GPSDashboard> {
     final typeController = TextEditingController(text: device.carType ?? '');
 
     final List<MapEntry<TextEditingController, TextEditingController>>
-    customFields = [];
+        customFields = [];
     if (device.additionalData != null) {
       device.additionalData!.forEach((key, value) {
-        customFields.add(
-          MapEntry(
-            TextEditingController(text: key),
-            TextEditingController(text: value.toString()),
-          ),
-        );
+        customFields.add(MapEntry(
+          TextEditingController(text: key),
+          TextEditingController(text: value.toString()),
+        ));
       });
     }
 
@@ -220,7 +221,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: Text('Edit Config: ${device.id}'),
+              title: Text('Edit: ${device.displayName}'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -228,16 +229,18 @@ class _GPSDashboardState extends State<GPSDashboard> {
                     TextField(
                       controller: nameController,
                       decoration: const InputDecoration(
-                        labelText: 'Car Display Name',
+                        labelText: 'Display Name',
                         hintText: 'e.g. CEO Sedan',
+                        prefixIcon: Icon(Icons.label_outline, size: 20),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: colorController,
                       decoration: const InputDecoration(
-                        labelText: 'Display Color (Hex or name)',
+                        labelText: 'Color (Hex or name)',
                         hintText: 'e.g. #FF0000 or red',
+                        prefixIcon: Icon(Icons.palette_outlined, size: 20),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -246,35 +249,32 @@ class _GPSDashboardState extends State<GPSDashboard> {
                       decoration: const InputDecoration(
                         labelText: 'Vehicle Type',
                         hintText: 'e.g. Sedan, SUV, Van',
+                        prefixIcon: Icon(Icons.local_shipping_outlined, size: 20),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Custom Attributes:',
+                        Text(
+                          'Custom Attributes',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.7),
                           ),
                         ),
                         TextButton.icon(
                           onPressed: () {
                             setDialogState(() {
-                              customFields.add(
-                                MapEntry(
-                                  TextEditingController(),
-                                  TextEditingController(),
-                                ),
-                              );
+                              customFields.add(MapEntry(
+                                TextEditingController(),
+                                TextEditingController(),
+                              ));
                             });
                           },
-                          icon: const Icon(Icons.add, size: 16),
-                          label: const Text(
-                            'Add Key',
-                            style: TextStyle(fontSize: 11),
-                          ),
+                          icon: const Icon(Icons.add_rounded, size: 16),
+                          label: const Text('Add', style: TextStyle(fontSize: 12)),
                         ),
                       ],
                     ),
@@ -287,9 +287,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                               child: TextField(
                                 controller: field.key,
                                 decoration: const InputDecoration(
-                                  hintText: 'Key',
-                                  isDense: true,
-                                ),
+                                    hintText: 'Key', isDense: true),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -297,22 +295,14 @@ class _GPSDashboardState extends State<GPSDashboard> {
                               child: TextField(
                                 controller: field.value,
                                 decoration: const InputDecoration(
-                                  hintText: 'Value',
-                                  isDense: true,
-                                ),
+                                    hintText: 'Value', isDense: true),
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Colors.redAccent,
-                                size: 18,
-                              ),
-                              onPressed: () {
-                                setDialogState(() {
-                                  customFields.remove(field);
-                                });
-                              },
+                              icon: const Icon(Icons.remove_circle_outline,
+                                  color: Colors.redAccent, size: 18),
+                              onPressed: () =>
+                                  setDialogState(() => customFields.remove(field)),
                             ),
                           ],
                         ),
@@ -332,11 +322,8 @@ class _GPSDashboardState extends State<GPSDashboard> {
                     for (final field in customFields) {
                       final k = field.key.text.trim();
                       final v = field.value.text.trim();
-                      if (k.isNotEmpty) {
-                        extraData[k] = v;
-                      }
+                      if (k.isNotEmpty) extraData[k] = v;
                     }
-
                     gpsProvider.updateDeviceMetadata(
                       deviceId: device.id,
                       name: nameController.text.trim(),
@@ -366,9 +353,10 @@ class _GPSDashboardState extends State<GPSDashboard> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Enter WebSocket server URL (e.g. wss://tracking.qutma.com/ws or ws://ip:8081).',
-                style: TextStyle(color: Colors.grey, fontSize: 13),
+              Text(
+                'Enter WebSocket server URL',
+                style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -376,8 +364,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
                 decoration: const InputDecoration(
                   labelText: 'WebSocket URL',
                   hintText: 'wss://tracking.qutma.com/ws',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.link),
+                  prefixIcon: Icon(Icons.link_rounded),
                 ),
               ),
             ],
@@ -420,11 +407,9 @@ class _GPSDashboardState extends State<GPSDashboard> {
             return DefaultTabController(
               length: 2,
               child: AlertDialog(
-                title: const Text('Admin Panel & Settings'),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 16,
-                ),
+                title: const Text('Admin Panel'),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                 content: SizedBox(
                   width: 500,
                   height: 420,
@@ -432,32 +417,25 @@ class _GPSDashboardState extends State<GPSDashboard> {
                     children: [
                       const TabBar(
                         tabs: [
-                          Tab(
-                            icon: Icon(Icons.manage_accounts),
-                            text: 'Users Manager',
-                          ),
-                          Tab(
-                            icon: Icon(Icons.palette),
-                            text: 'Theme Settings',
-                          ),
+                          Tab(icon: Icon(Icons.manage_accounts_outlined),
+                              text: 'Users'),
+                          Tab(icon: Icon(Icons.palette_outlined),
+                              text: 'Theme'),
                         ],
                       ),
                       const SizedBox(height: 16),
                       Expanded(
                         child: TabBarView(
                           children: [
-                            // 1. Users Manager Tab
+                            // Users Tab
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 ExpansionTile(
-                                  title: const Text(
-                                    'Add New User',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  title: const Text('Add New User',
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600)),
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
@@ -488,52 +466,40 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                             ),
                                             items: const [
                                               DropdownMenuItem(
-                                                value: 'admin',
-                                                child: Text('Admin'),
-                                              ),
+                                                  value: 'admin',
+                                                  child: Text('Admin')),
                                               DropdownMenuItem(
-                                                value: 'editor',
-                                                child: Text('Editor'),
-                                              ),
+                                                  value: 'editor',
+                                                  child: Text('Editor')),
                                               DropdownMenuItem(
-                                                value: 'viewer',
-                                                child: Text('Viewer'),
-                                              ),
+                                                  value: 'viewer',
+                                                  child: Text('Viewer')),
                                             ],
                                             onChanged: (val) {
                                               if (val != null) {
-                                                setDialogState(() {
-                                                  selectedRole = val;
-                                                });
+                                                setDialogState(
+                                                    () => selectedRole = val);
                                               }
                                             },
                                           ),
                                           const SizedBox(height: 12),
                                           ElevatedButton(
                                             onPressed: () {
-                                              final user = usernameController
-                                                  .text
-                                                  .trim();
+                                              final user =
+                                                  usernameController.text.trim();
                                               final pass =
                                                   passwordController.text;
                                               if (user.isNotEmpty &&
                                                   pass.isNotEmpty) {
                                                 provider.createUser(
-                                                  user,
-                                                  pass,
-                                                  selectedRole,
-                                                );
+                                                    user, pass, selectedRole);
                                                 usernameController.clear();
                                                 passwordController.clear();
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Creating user "$user"...',
-                                                    ),
-                                                  ),
-                                                );
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(SnackBar(
+                                                  content: Text(
+                                                      'Creating user "$user"...'),
+                                                ));
                                               }
                                             },
                                             child: const Text('Add User'),
@@ -544,68 +510,80 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                   ],
                                 ),
                                 const Divider(),
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 4,
-                                  ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 4),
                                   child: Text(
-                                    'Existing Users:',
+                                    'Existing Users',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w700,
                                       fontSize: 13,
+                                      color: Colors.white.withValues(alpha: 0.6),
                                     ),
                                   ),
                                 ),
                                 Expanded(
                                   child: provider.users.isEmpty
-                                      ? const Center(
-                                          child: Text(
-                                            'Loading users...',
-                                            style: TextStyle(
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                        )
+                                      ? Center(
+                                          child: Text('Loading...',
+                                              style: TextStyle(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.3))))
                                       : ListView.builder(
                                           itemCount: provider.users.length,
                                           itemBuilder: (context, index) {
                                             final u = provider.users[index];
-                                            final isSelf =
-                                                u['username'] ==
+                                            final isSelf = u['username'] ==
                                                 provider.currentUsername;
                                             return ListTile(
-                                              title: Text(u['username'] ?? ''),
+                                              title:
+                                                  Text(u['username'] ?? ''),
                                               subtitle: Text(
-                                                'Role: ${u['role']}',
-                                              ),
+                                                  'Role: ${u['role']}'),
                                               dense: true,
                                               trailing: isSelf
-                                                  ? const Chip(
-                                                      label: Text(
-                                                        'You',
-                                                        style: TextStyle(
-                                                          fontSize: 10,
-                                                        ),
+                                                  ? Container(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 3),
+                                                      decoration: BoxDecoration(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .primary
+                                                            .withValues(
+                                                                alpha: 0.1),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(6),
                                                       ),
+                                                      child: Text('You',
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .colorScheme
+                                                                .primary,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w700,
+                                                          )),
                                                     )
                                                   : IconButton(
                                                       icon: const Icon(
-                                                        Icons.delete,
-                                                        color: Colors.redAccent,
-                                                        size: 20,
-                                                      ),
+                                                          Icons.delete_outline,
+                                                          color:
+                                                              Colors.redAccent,
+                                                          size: 20),
                                                       onPressed: () {
                                                         provider.deleteUser(
-                                                          u['id'],
-                                                        );
+                                                            u['id']);
                                                         ScaffoldMessenger.of(
-                                                          context,
-                                                        ).showSnackBar(
+                                                                context)
+                                                            .showSnackBar(
                                                           SnackBar(
                                                             content: Text(
-                                                              'Deleting user "${u['username']}"...',
-                                                            ),
+                                                                'Deleting "${u['username']}"...'),
                                                           ),
                                                         );
                                                       },
@@ -616,66 +594,31 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                 ),
                               ],
                             ),
-
-                            // 2. Theme Settings Tab
+                            // Theme Tab
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // const Text(
-                                  //   'Theme Mode',
-                                  //   style: TextStyle(
-                                  //     fontWeight: FontWeight.bold,
-                                  //     fontSize: 15,
-                                  //   ),
-                                  // ),
-                                  // const SizedBox(height: 8),
-                                  // SwitchListTile(
-                                  //   title: const Text('Dark Mode'),
-                                  //   value: provider.isDarkTheme,
-                                  //   onChanged: (val) {
-                                  //     provider.toggleTheme(val);
-                                  //   },
-                                  // ),
                                   const Divider(height: 32),
-                                  const Text(
+                                  Text(
                                     'Accent Color',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w700,
                                       fontSize: 15,
+                                      color: Colors.white.withValues(alpha: 0.8),
                                     ),
                                   ),
-                                  const SizedBox(height: 12),
+                                  const SizedBox(height: 16),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
                                     children: [
-                                      _colorDot(
-                                        provider,
-                                        Colors.blueAccent,
-                                        'Blue',
-                                      ),
-                                      _colorDot(
-                                        provider,
-                                        Colors.greenAccent,
-                                        'Green',
-                                      ),
-                                      _colorDot(
-                                        provider,
-                                        Colors.orangeAccent,
-                                        'Orange',
-                                      ),
-                                      _colorDot(
-                                        provider,
-                                        Colors.purpleAccent,
-                                        'Purple',
-                                      ),
-                                      _colorDot(
-                                        provider,
-                                        Colors.redAccent,
-                                        'Red',
-                                      ),
+                                      _colorDot(provider, Colors.blueAccent, 'Blue'),
+                                      _colorDot(provider, Colors.greenAccent, 'Green'),
+                                      _colorDot(provider, Colors.orangeAccent, 'Orange'),
+                                      _colorDot(provider, Colors.purpleAccent, 'Purple'),
+                                      _colorDot(provider, Colors.redAccent, 'Red'),
                                     ],
                                   ),
                                 ],
@@ -733,8 +676,10 @@ class _GPSDashboardState extends State<GPSDashboard> {
     final provider = Provider.of<GPSProvider>(context);
     final devices = provider.devicesList.where((d) => d.enabled).toList();
     final selectedDevice = provider.selectedDevice;
+    final theme = Theme.of(context);
+    final isWeb = MediaQuery.of(context).size.width >= 800;
 
-    // Auto-follow logic
+    // Auto-follow
     if (selectedDevice != null && provider.autoFollow) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _mapController.move(
@@ -747,13 +692,13 @@ class _GPSDashboardState extends State<GPSDashboard> {
     return Scaffold(
       body: Stack(
         children: [
-          // 1. Map Layer
+          // === Map Layer ===
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
               initialCenter: selectedDevice != null
                   ? LatLng(selectedDevice.latitude, selectedDevice.longitude)
-                  : const LatLng(24.573213, 46.546881), // Default Riyadh
+                  : const LatLng(24.573213, 46.546881),
               initialZoom: 13.0,
             ),
             children: [
@@ -767,22 +712,19 @@ class _GPSDashboardState extends State<GPSDashboard> {
                   polylines: [
                     Polyline(
                       points: selectedDevice.history,
-                      strokeWidth: 4.0,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.8),
+                      strokeWidth: 3.5,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.6),
                     ),
                   ],
                 ),
               MarkerLayer(
                 markers: devices.map((device) {
-                  final isSelected =
-                      device.id ==
+                  final isSelected = device.id ==
                       (selectedDevice?.id ?? provider.selectedDeviceId);
                   final angle = (device.direction * math.pi) / 180.0;
 
                   Color arrowColor = isSelected
-                      ? const Color(0xFF3B82F6)
+                      ? theme.colorScheme.primary
                       : const Color(0xFF10B981);
                   if (device.color != null && device.color!.isNotEmpty) {
                     arrowColor = _parseColor(device.color!) ?? arrowColor;
@@ -797,78 +739,64 @@ class _GPSDashboardState extends State<GPSDashboard> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (device.name != null &&
-                              device.name!.trim().isNotEmpty)
+                          if (device.name != null && device.name!.trim().isNotEmpty)
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 1,
-                              ),
+                                  horizontal: 6, vertical: 2),
                               margin: const EdgeInsets.only(bottom: 2),
                               decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.7),
-                                borderRadius: BorderRadius.circular(4),
+                                color: Colors.black.withValues(alpha: 0.75),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 device.name!,
-                                style: const TextStyle(
-                                  fontSize: 8,
-                                  color: Colors.cyanAccent,
-                                  fontWeight: FontWeight.bold,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: arrowColor,
+                                  fontWeight: FontWeight.w700,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
+                                horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? Colors.blue
-                                  : const Color(0xFF1E293B),
+                                  ? theme.colorScheme.primary
+                                  : const Color(0xFF141B2D),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: Colors.white24,
-                                width: 1,
-                              ),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black45,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
+                                  color: Colors.white.withValues(alpha: 0.15)),
                             ),
                             child: Text(
                               '${device.speed.toStringAsFixed(1)} km/h',
                               style: const TextStyle(
                                 fontSize: 9,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Transform.rotate(
                             angle: angle,
                             child: Icon(
-                              Icons.navigation,
-                              size: isSelected ? 32 : 24,
+                              Icons.navigation_rounded,
+                              size: isSelected ? 30 : 22,
                               color: arrowColor,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Container(
-                            width: 8,
-                            height: 8,
+                            width: 7,
+                            height: 7,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: Colors.white,
                               boxShadow: [
                                 BoxShadow(
-                                  color: arrowColor,
+                                  color: arrowColor.withValues(alpha: 0.6),
                                   blurRadius: 6,
                                   spreadRadius: 2,
                                 ),
@@ -884,454 +812,455 @@ class _GPSDashboardState extends State<GPSDashboard> {
             ],
           ),
 
-          // 2. Premium Top Bar Overlay
+          // === Top Status Chip ===
           Positioned(
-            top: 40,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF0F172A,
-                            ).withValues(alpha: 0.9),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white10),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black54,
-                                blurRadius: 10,
-                                offset: Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: provider.isConnected
-                                      ? Colors.green
-                                      : provider.isConnecting
+            top: isWeb ? 16 : 50,
+            left: 16,
+            child: Row(
+              children: [
+                // Connection chip
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0F1523).withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.06)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: provider.isConnected
+                                  ? const Color(0xFF10B981)
+                                  : provider.isConnecting
                                       ? Colors.amber
-                                      : Colors.red,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      provider.isConnected
-                                          ? 'Connected Live (${provider.currentUsername} - ${provider.currentRole.toUpperCase()})'
-                                          : provider.isConnecting
-                                          ? 'Reconnecting...'
-                                          : 'Disconnected',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    Text(
-                                      provider.serverAddress,
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 11,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // IconButton(
-                              //   icon: const Icon(
-                              //     Icons.settings,
-                              //     color: Colors.blue,
-                              //   ),
-                              //   onPressed: () =>
-                              //       _showServerConfigDialog(provider),
-                              //   tooltip: 'Server Settings',
-                              // ),
-                              if (provider.currentRole == 'admin') ...[
-                                const SizedBox(width: 4),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.admin_panel_settings,
-                                    color: Colors.amber,
-                                  ),
-                                  onPressed: () =>
-                                      _showAdminSettingsDialog(provider),
-                                  tooltip: 'Admin Settings',
+                                      : const Color(0xFFEF4444),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (provider.isConnected
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFFEF4444))
+                                      .withValues(alpha: 0.5),
+                                  blurRadius: 6,
                                 ),
                               ],
-                            ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            provider.isConnected
+                                ? 'Live'
+                                : provider.isConnecting
+                                    ? 'Reconnecting'
+                                    : 'Offline',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            ' • ${provider.currentUsername}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withValues(alpha: 0.4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (provider.currentRole == 'admin') ...[
+                  const SizedBox(width: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Material(
+                        color: const Color(0xFF0F1523).withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          onTap: () => _showAdminSettingsDialog(provider),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.06)),
+                            ),
+                            child: const Icon(Icons.admin_panel_settings_outlined,
+                                color: Colors.amber, size: 20),
                           ),
                         ),
                       ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
 
-                      const SizedBox(width: 12),
-                      FloatingActionButton.small(
-                        heroTag: 'btnAutoFollow',
-                        backgroundColor: provider.autoFollow
-                            ? Colors.blue
-                            : const Color(0xFF0F172A),
-                        onPressed: () {
-                          provider.setAutoFollow(!provider.autoFollow);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                !provider.autoFollow
-                                    ? 'Auto-follow Device Disabled'
-                                    : 'Auto-follow Device Enabled',
-                              ),
-                              duration: const Duration(seconds: 1),
-                            ),
-                          );
-                        },
-                        child: Icon(
-                          provider.autoFollow
-                              ? Icons.gps_fixed
-                              : Icons.gps_not_fixed,
-                          color: Colors.white,
-                        ),
+          // === Auto-follow toggle ===
+          Positioned(
+            top: isWeb ? 16 : 50,
+            right: 16,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Material(
+                  color: provider.autoFollow
+                      ? theme.colorScheme.primary
+                      : const Color(0xFF0F1523).withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    onTap: () {
+                      provider.setAutoFollow(!provider.autoFollow);
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.06)),
                       ),
-                    ],
+                      child: Icon(
+                        provider.autoFollow
+                            ? Icons.gps_fixed_rounded
+                            : Icons.gps_not_fixed_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
 
-          // 3. Center/Constrained Bottom Sheet
+          // === Bottom Panel ===
           Positioned(
-            bottom: MediaQuery.of(context).size.width >= 800 ? 24 : 105,
+            bottom: isWeb ? 20 : 100,
             left: 0,
             right: 0,
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
+                constraints: const BoxConstraints(maxWidth: 560),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Device selector chips
                       if (devices.isNotEmpty)
                         SizedBox(
-                          height: 55,
+                          height: 48,
                           child: ListView(
                             scrollDirection: Axis.horizontal,
                             children: devices.map((device) {
-                              final isSelected =
-                                  device.id ==
+                              final isSelected = device.id ==
                                   (selectedDevice?.id ??
                                       provider.selectedDeviceId);
-                              final isRecentlyUpdated =
-                                  DateTime.now()
+                              final isRecentlyUpdated = DateTime.now()
                                       .difference(device.lastUpdated)
                                       .inSeconds <
                                   30;
-
                               return GestureDetector(
                                 onTap: () => _focusDevice(provider, device),
                                 onLongPress: () =>
                                     _showEditMetadataDialog(device),
-                                child: Tooltip(
-                                  message:
-                                      'Long press to edit vehicle configuration',
-                                  child: Container(
-                                    margin: const EdgeInsets.only(right: 8),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
+                                child: Container(
+                                  margin: const EdgeInsets.only(right: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? theme.colorScheme.primary
+                                        : const Color(0xFF141B2D)
+                                            .withValues(alpha: 0.9),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
                                       color: isSelected
-                                          ? const Color(0xFF1D4ED8)
-                                          : const Color(
-                                              0xFF1E293B,
-                                            ).withValues(alpha: 0.9),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? Colors.blue
-                                            : Colors.white10,
-                                        width: 1.5,
-                                      ),
+                                          ? theme.colorScheme.primary
+                                          : Colors.white
+                                              .withValues(alpha: 0.06),
                                     ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.directions_car,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
                                           color: isRecentlyUpdated
-                                              ? Colors.orangeAccent
-                                              : Colors.grey,
-                                          size: 18,
+                                              ? const Color(0xFF10B981)
+                                              : Colors.white
+                                                  .withValues(alpha: 0.2),
                                         ),
-                                        const SizedBox(width: 8),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              device.displayName,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 11,
-                                              ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            device.displayName,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 12,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : Colors.white
+                                                      .withValues(alpha: 0.8),
                                             ),
-                                            Text(
-                                              '${device.speed.toStringAsFixed(1)} km/h',
-                                              style: const TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 9,
-                                              ),
+                                          ),
+                                          Text(
+                                            '${device.speed.toStringAsFixed(1)} km/h',
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? Colors.white
+                                                      .withValues(alpha: 0.7)
+                                                  : Colors.white
+                                                      .withValues(alpha: 0.35),
+                                              fontSize: 10,
                                             ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
                               );
                             }).toList(),
                           ),
                         ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
+
+                      // Telemetry card
                       if (selectedDevice != null)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF1E293B,
-                            ).withValues(alpha: 0.95),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white10),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black54,
-                                blurRadius: 15,
-                                offset: Offset(0, 5),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF141B2D)
+                                    .withValues(alpha: 0.92),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                    color:
+                                        Colors.white.withValues(alpha: 0.06)),
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.sensors,
-                                          color: Colors.orangeAccent,
-                                          size: 20,
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.primary
+                                              .withValues(alpha: 0.12),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                'car: ${selectedDevice.displayName}',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 14,
-                                                  letterSpacing: 0.5,
-                                                  color: Colors.white,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
+                                        child: Icon(Icons.sensors_rounded,
+                                            color: theme.colorScheme.primary,
+                                            size: 18),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              selectedDevice.displayName,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 15,
+                                                color: Colors.white,
                                               ),
-                                              if (selectedDevice.carType !=
-                                                      null &&
-                                                  selectedDevice.carType!
-                                                      .trim()
-                                                      .isNotEmpty)
-                                                Text(
-                                                  'Type: ${selectedDevice.carType}',
-                                                  style: const TextStyle(
-                                                    color: Colors.grey,
-                                                    fontSize: 11,
-                                                  ),
+                                              overflow:
+                                                  TextOverflow.ellipsis,
+                                            ),
+                                            if (selectedDevice.carType != null &&
+                                                selectedDevice.carType!
+                                                    .trim()
+                                                    .isNotEmpty)
+                                              Text(
+                                                selectedDevice.carType!,
+                                                style: TextStyle(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.35),
+                                                  fontSize: 11,
                                                 ),
-                                            ],
-                                          ),
+                                              ),
+                                          ],
                                         ),
+                                      ),
+                                      Text(
+                                        _formatElapsedTime(
+                                            selectedDevice.lastUpdated),
+                                        style: TextStyle(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.3),
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      if (provider.currentRole != 'viewer')
                                         IconButton(
-                                          icon: const Icon(
-                                            Icons.edit,
-                                            color: Colors.blueAccent,
-                                            size: 18,
-                                          ),
+                                          icon: Icon(Icons.edit_outlined,
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.3),
+                                              size: 17),
                                           onPressed: () =>
                                               _showEditMetadataDialog(
-                                                selectedDevice,
-                                              ),
-                                          tooltip: 'Edit Car Properties',
+                                                  selectedDevice),
+                                        ),
+                                    ],
+                                  ),
+                                  Divider(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.06),
+                                      height: 22),
+                                  // Telemetry grid
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                          child: _buildTelemetryTile(
+                                              Icons.speed_rounded,
+                                              'Speed',
+                                              '${selectedDevice.speed.toStringAsFixed(1)} km/h')),
+                                      Expanded(
+                                          child: _buildTelemetryTile(
+                                              Icons.explore_rounded,
+                                              'Bearing',
+                                              '${selectedDevice.direction.toStringAsFixed(0)}°')),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                          child: _buildTelemetryTile(
+                                              Icons.cloud_outlined,
+                                              'Altitude',
+                                              '${selectedDevice.altitude.toStringAsFixed(0)}m')),
+                                      Expanded(
+                                          child: _buildTelemetryTile(
+                                              Icons.schedule_rounded,
+                                              'Time',
+                                              selectedDevice.gpsTime
+                                                  .split(' ')
+                                                  .last)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  // Coordinates bar
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.04),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Text(
+                                          'Lat: ${selectedDevice.latitude.toStringAsFixed(6)}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontFamily: 'monospace',
+                                            color: Colors.white
+                                                .withValues(alpha: 0.5),
+                                          ),
+                                        ),
+                                        Text(
+                                          'Lon: ${selectedDevice.longitude.toStringAsFixed(6)}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontFamily: 'monospace',
+                                            color: Colors.white
+                                                .withValues(alpha: 0.5),
+                                          ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  Text(
-                                    'Updated ${_formatElapsedTime(selectedDevice.lastUpdated)}',
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Divider(color: Colors.white10, height: 20),
-                              GridView.count(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                crossAxisCount: 2,
-                                childAspectRatio: 3.5,
-                                children: [
-                                  _buildTelemetryTile(
-                                    Icons.speed,
-                                    'Speed',
-                                    '${selectedDevice.speed.toStringAsFixed(1)} km/h',
-                                  ),
-                                  _buildTelemetryTile(
-                                    Icons.explore,
-                                    'Bearing',
-                                    '${selectedDevice.direction.toStringAsFixed(0)}°',
-                                  ),
-                                  _buildTelemetryTile(
-                                    Icons.cloud,
-                                    'Altitude',
-                                    '${selectedDevice.altitude.toStringAsFixed(0)}m',
-                                  ),
-                                  _buildTelemetryTile(
-                                    Icons.timer,
-                                    'Time',
-                                    selectedDevice.gpsTime.split(' ').last,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.black26,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    Text(
-                                      'Lat: ${selectedDevice.latitude.toStringAsFixed(6)}',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontFamily: 'monospace',
-                                      ),
-                                    ),
-                                    Text(
-                                      'Lon: ${selectedDevice.longitude.toStringAsFixed(6)}',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontFamily: 'monospace',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (selectedDevice.additionalData != null &&
-                                  selectedDevice
-                                      .additionalData!
-                                      .isNotEmpty) ...[
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'ADDITIONAL DATA',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                const Divider(
-                                  color: Colors.white10,
-                                  height: 10,
-                                ),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 4,
-                                  children: selectedDevice
-                                      .additionalData!
-                                      .entries
-                                      .map((entry) {
+                                  if (selectedDevice.additionalData != null &&
+                                      selectedDevice
+                                          .additionalData!.isNotEmpty) ...[
+                                    const SizedBox(height: 10),
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 4,
+                                      children: selectedDevice
+                                          .additionalData!.entries
+                                          .map((entry) {
                                         return Container(
                                           padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
+                                              horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                            border: Border.all(
-                                              color: Colors.white10,
-                                            ),
+                                            color: Colors.white
+                                                .withValues(alpha: 0.04),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
                                           ),
                                           child: Text(
                                             '${entry.key}: ${entry.value}',
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.cyanAccent,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: theme.colorScheme.primary
+                                                  .withValues(alpha: 0.8),
                                             ),
                                           ),
                                         );
-                                      })
-                                      .toList(),
-                                ),
-                              ],
-                            ],
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
                           ),
                         )
                       else
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
-                            vertical: 24,
-                            horizontal: 16,
-                          ),
+                              vertical: 24, horizontal: 16),
                           decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF1E293B,
-                            ).withValues(alpha: 0.9),
+                            color: const Color(0xFF141B2D)
+                                .withValues(alpha: 0.85),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Text(
-                              'Waiting for active devices to connect...',
+                              devices.isEmpty
+                                  ? 'Waiting for devices to connect...'
+                                  : 'Select a vehicle to view details',
                               style: TextStyle(
-                                color: Colors.grey,
+                                color: Colors.white.withValues(alpha: 0.3),
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -1352,9 +1281,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
     try {
       if (colorStr.startsWith('#')) {
         String cleanHex = colorStr.replaceAll('#', '');
-        if (cleanHex.length == 6) {
-          cleanHex = 'FF$cleanHex';
-        }
+        if (cleanHex.length == 6) cleanHex = 'FF$cleanHex';
         return Color(int.parse(cleanHex, radix: 16));
       }
       final map = {
@@ -1390,26 +1317,35 @@ class _GPSDashboardState extends State<GPSDashboard> {
   }
 
   Widget _buildTelemetryTile(IconData icon, String label, String value) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: Colors.blueAccent),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(color: Colors.grey, fontSize: 10),
-            ),
-            Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            ),
-          ],
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon,
+              size: 15,
+              color: Theme.of(context)
+                  .colorScheme
+                  .primary
+                  .withValues(alpha: 0.6)),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.35), fontSize: 10),
+              ),
+              Text(
+                value,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
