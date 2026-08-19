@@ -141,7 +141,19 @@ The gateway server implements core aspects of the JT808 protocol specification:
 The Docker setup runs 3 services in isolated containers:
 1. **`gps_mysql`**: MySQL 8.0 database with persistent storage.
 2. **`gps_backend`**: Spring Boot + Netty server (TCP Port `8000` for trackers, REST/WebSocket Port `8081` for dashboard).
-3. **`gps_web`**: Flutter Web dashboard served through Nginx (Port `80`).
+3. **`gps_web`**: Flutter Web dashboard served through Nginx with **HTTPS & WSS enabled** (Ports `80` and `443`).
+
+### 🔐 SSL / HTTPS Setup:
+Before starting the containers, generate SSL certificates:
+
+- **For testing / local (Self-Signed)**:
+  ```bash
+  ./init-ssl.sh
+  ```
+- **For production (Free Let's Encrypt SSL with Domain)**:
+  ```bash
+  ./init-ssl.sh letsencrypt yourdomain.com your-email@example.com
+  ```
 
 ### Manual Launch:
 ```bash
@@ -152,10 +164,13 @@ cd GPS-Tracker
 # 2. (Optional) Customize passwords in .env
 echo "DB_PASSWORD=your_secure_password" > .env
 
-# 3. Start all services (MySQL, Backend, Flutter Web)
+# 3. Initialize SSL Certificate
+./init-ssl.sh
+
+# 4. Start all services (MySQL, Backend, Flutter Web HTTPS)
 docker compose up -d --build
 
-# 4. Check status & logs
+# 5. Check status & logs
 docker compose ps
 docker compose logs -f
 ```
@@ -176,4 +191,5 @@ In your GitHub repository: **Settings > Secrets and variables > Actions > New re
 | `SERVER_SSH_KEY` | Private SSH key (`~/.ssh/id_rsa` or `id_ed25519`) | `-----BEGIN OPENSSH PRIVATE KEY----- ...` |
 | `SERVER_PORT` | SSH Port (optional, defaults to 22) | `22` |
 | `SERVER_APP_PATH` | Path to repo on server (optional, defaults to `~/GPS-Tracker`) | `/home/ubuntu/GPS-Tracker` |
+
 
