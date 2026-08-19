@@ -9,7 +9,7 @@ const net = require('net');
 // const SERVER_PORT = 8000;
 
 //ws://176.45.55.56:3000
-const SERVER_HOST = '176.45.55.56';
+const SERVER_HOST = '169.58.198.222';
 const SERVER_PORT = 8000;
 const SEND_INTERVAL_MS = 3000; // Send location every 3 seconds
 
@@ -152,12 +152,15 @@ function updateCarPosition(car) {
 }
 
 // Connect to the gateway server
+const CONNECT_TIMEOUT_MS = 10000; // Consider it "no connection" if nothing happens within 10s
 const client = new net.Socket();
+client.setTimeout(CONNECT_TIMEOUT_MS);
 
 console.log(`Connecting to JT808 Gateway Server at ${SERVER_HOST}:${SERVER_PORT}...`);
 
 client.connect(SERVER_PORT, SERVER_HOST, () => {
     console.log('Connected to gateway! Starting car simulations...');
+    client.setTimeout(0); // Connected - stop watching for a connect timeout
 
     // Start simulation loop
     setInterval(() => {
@@ -191,8 +194,13 @@ client.on('data', (data) => {
     console.log(`[Platform Reply] Received response buffer: ${data.toString('hex').toUpperCase()}`);
 });
 
+client.on('timeout', () => {
+    console.error(`No connection: could not reach ${SERVER_HOST}:${SERVER_PORT} within ${CONNECT_TIMEOUT_MS / 1000}s (timed out).`);
+    client.destroy();
+});
+
 client.on('error', (err) => {
-    console.error('Simulator Socket Error:', err.message);
+    console.error(`No connection: ${err.message}`);
 });
 
 client.on('close', () => {
