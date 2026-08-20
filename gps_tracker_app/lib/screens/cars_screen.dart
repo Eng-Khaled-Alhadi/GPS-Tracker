@@ -11,8 +11,12 @@ class CarsScreen extends StatefulWidget {
   State<CarsScreen> createState() => _CarsScreenState();
 }
 
-class _CarsScreenState extends State<CarsScreen> {
+class _CarsScreenState extends State<CarsScreen>
+    with AutomaticKeepAliveClientMixin {
   Timer? _uiTimer;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -232,6 +236,7 @@ class _CarsScreenState extends State<CarsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final provider = Provider.of<GPSProvider>(context);
     final devices = provider.devicesList;
     final size = MediaQuery.of(context).size;

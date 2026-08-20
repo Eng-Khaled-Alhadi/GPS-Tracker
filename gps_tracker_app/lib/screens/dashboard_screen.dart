@@ -6,8 +6,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../models/device.dart';
 import '../providers/gps_provider.dart';
-import 'history_screen.dart';
-import 'cars_screen.dart';
 
 class GPSDashboard extends StatefulWidget {
   const GPSDashboard({super.key});
@@ -16,9 +14,14 @@ class GPSDashboard extends StatefulWidget {
   State<GPSDashboard> createState() => _GPSDashboardState();
 }
 
-class _GPSDashboardState extends State<GPSDashboard> {
+class _GPSDashboardState extends State<GPSDashboard>
+    with AutomaticKeepAliveClientMixin {
   final MapController _mapController = MapController();
   Timer? _uiTimer;
+  bool _isDetailExpanded = true;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -426,8 +429,8 @@ class _GPSDashboardState extends State<GPSDashboard> {
                   vertical: 16,
                 ),
                 content: SizedBox(
-                  width: 500,
-                  height: 420,
+                  width: math.min(500, MediaQuery.of(context).size.width * 0.9),
+                  height: math.min(420, MediaQuery.of(context).size.height * 0.7),
                   child: Column(
                     children: [
                       const TabBar(
@@ -730,6 +733,7 @@ class _GPSDashboardState extends State<GPSDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final provider = Provider.of<GPSProvider>(context);
     final devices = provider.devicesList.where((d) => d.enabled).toList();
     final selectedDevice = provider.selectedDevice;
@@ -1192,16 +1196,53 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                       ],
                                     ),
                                   ),
-                                  Text(
-                                    'Updated ${_formatElapsedTime(selectedDevice.lastUpdated)}',
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 11,
-                                    ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Updated ${_formatElapsedTime(selectedDevice.lastUpdated)}',
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          _isDetailExpanded
+                                              ? Icons.expand_more
+                                              : Icons.expand_less,
+                                          color: Colors.white60,
+                                          size: 20,
+                                        ),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        tooltip: _isDetailExpanded
+                                            ? 'Collapse details'
+                                            : 'Expand details',
+                                        onPressed: () {
+                                          setState(() {
+                                            _isDetailExpanded =
+                                                !_isDetailExpanded;
+                                          });
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
+                              if (_isDetailExpanded) ...[
                               const Divider(color: Colors.white10, height: 20),
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxHeight:
+                                      MediaQuery.of(context).size.height *
+                                      0.32,
+                                ),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
                               GridView.count(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
@@ -1310,6 +1351,11 @@ class _GPSDashboardState extends State<GPSDashboard> {
                                       })
                                       .toList(),
                                 ),
+                              ],
+                                    ],
+                                  ),
+                                ),
+                              ),
                               ],
                             ],
                           ),

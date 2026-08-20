@@ -10,8 +10,12 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen>
+    with AutomaticKeepAliveClientMixin {
   final TextEditingController _speedController = TextEditingController();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -38,6 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final provider = Provider.of<GPSProvider>(context);
     final isAdmin = provider.currentRole == 'admin';
     final theme = Theme.of(context);

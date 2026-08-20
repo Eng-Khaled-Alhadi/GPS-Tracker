@@ -9,7 +9,8 @@ const net = require('net');
 // const SERVER_PORT = 8000;
 
 //ws://176.45.55.56:3000
-const SERVER_HOST = '169.58.198.222';
+// const SERVER_HOST = '169.58.198.222';
+const SERVER_HOST = 'localhost';
 const SERVER_PORT = 8000;
 const SEND_INTERVAL_MS = 3000; // Send location every 3 seconds
 

@@ -1,14 +1,49 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/device.dart';
 import '../models/overspeed_alert.dart';
 
-const String defaultAddress = 'wss://tracking.qutma.com/ws';
+String get defaultAddress {
+  const envHost = String.fromEnvironment('SERVER_HOST');
+  if (envHost.isNotEmpty) {
+    if (envHost.startsWith('ws://') || envHost.startsWith('wss://')) {
+      return envHost;
+    }
+    return envHost.contains(':') ? 'ws://$envHost/ws' : 'wss://$envHost/ws';
+  }
 
+  if (kIsWeb) {
+    final uri = Uri.base;
+    final isLocal = uri.host == 'localhost' ||
+        uri.host == '127.0.0.1' ||
+        uri.host == '0.0.0.0' ||
+        uri.host.isEmpty;
 
+    if (kDebugMode || isLocal) {
+      final host = uri.host.isNotEmpty ? uri.host : 'localhost';
+      return 'ws://$host:8081/ws';
+    }
+
+    // Production Web (domain like tracking.qutma.com)
+    final protocol = uri.scheme == 'https' ? 'wss' : 'ws';
+    final portStr = (uri.port != 80 && uri.port != 443 && uri.port != 0)
+        ? ':${uri.port}'
+        : '';
+    return '$protocol://${uri.host}$portStr/ws';
+  }
+
+  // Non-web (Mobile / Desktop)
+  if (kDebugMode) {
+    return 'ws://localhost:8081/ws';
+  }
+
+  // Production domain
+  return 'wss://tracking.qutma.com/ws';
+}
 
 class GPSProvider extends ChangeNotifier {
   final _secureStorage = const FlutterSecureStorage();

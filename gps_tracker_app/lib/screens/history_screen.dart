@@ -19,11 +19,15 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends State<HistoryScreen>
+    with AutomaticKeepAliveClientMixin {
   final MapController _mapController = MapController();
   WebSocketChannel? _channel;
   bool _isConnected = false;
   bool _isLoadingHistory = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   // History State
   List<String> _historyDevices = [];
@@ -226,6 +230,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Route History Lookup'),
@@ -369,10 +374,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                       ],
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.6,
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                         // Filter inputs (Date Picker and Fast Filter Buttons)
                         Row(
                           children: [
@@ -652,7 +662,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                           ),
                         ],
-                      ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
