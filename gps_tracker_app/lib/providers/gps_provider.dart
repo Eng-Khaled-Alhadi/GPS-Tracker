@@ -8,6 +8,9 @@ import '../models/device.dart';
 import '../models/overspeed_alert.dart';
 
 String get defaultAddress {
+  if (!kDebugMode) {
+    return 'wss://tracking.qutma.com/ws';
+  }
   const envHost = String.fromEnvironment('SERVER_HOST');
   if (envHost.isNotEmpty) {
     if (envHost.startsWith('ws://') || envHost.startsWith('wss://')) {
@@ -18,7 +21,8 @@ String get defaultAddress {
 
   if (kIsWeb) {
     final uri = Uri.base;
-    final isLocal = uri.host == 'localhost' ||
+    final isLocal =
+        uri.host == 'localhost' ||
         uri.host == '127.0.0.1' ||
         uri.host == '0.0.0.0' ||
         uri.host.isEmpty;
@@ -166,6 +170,18 @@ class GPSProvider extends ChangeNotifier {
       key: 'admin_speed_limit',
       value: limit.toString(),
     );
+
+    // Sync speed limit setting to backend server
+    if (_channel != null && _isConnected && _currentRole == 'admin') {
+      _channel!.sink.add(
+        jsonEncode({
+          'type': 'set_speed_limit',
+          'limit': limit,
+          'token': _token,
+        }),
+      );
+    }
+
     notifyListeners();
   }
 
@@ -323,6 +339,36 @@ class GPSProvider extends ChangeNotifier {
               (u) => Map<String, dynamic>.from(u as Map),
             ),
           );
+          notifyListeners();
+        }
+      } else if (type == 'overspeed_notification' && data is Map) {
+        final alertMap = Map<String, dynamic>.from(data);
+        final alert = OverspeedAlert(
+          id:
+              alertMap['id']?.toString() ??
+              '${alertMap['deviceId']}_${DateTime.now().millisecondsSinceEpoch}',
+          deviceId: alertMap['deviceId'].toString(),
+          deviceName:
+              alertMap['deviceName']?.toString() ??
+              'Device ${alertMap['deviceId']}',
+          speed: (alertMap['speed'] as num?)?.toDouble() ?? 0.0,
+          limit: (alertMap['limit'] as num?)?.toDouble() ?? _speedLimit,
+          timestamp: alertMap['timestamp'] != null
+              ? DateTime.fromMillisecondsSinceEpoch(
+                  (alertMap['timestamp'] as num).toInt(),
+                )
+              : DateTime.now(),
+        );
+
+        // Deduplicate in case client also generated one recently
+        _alerts.removeWhere((a) => a.id == alert.id);
+        _alerts.insert(0, alert);
+        _unreadAlertsCount++;
+        _alertStreamController.add(alert);
+        notifyListeners();
+      } else if (type == 'speed_limit_updated') {
+        if (parsed['limit'] != null) {
+          _speedLimit = (parsed['limit'] as num).toDouble();
           notifyListeners();
         }
       } else if (type == 'create_user_response') {

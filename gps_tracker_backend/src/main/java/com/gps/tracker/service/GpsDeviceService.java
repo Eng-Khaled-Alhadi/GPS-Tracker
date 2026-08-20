@@ -42,9 +42,19 @@ public class GpsDeviceService {
     @Autowired
     private DeviceMetadataRepository deviceMetadataRepository;
 
+    @Autowired
+    private FirebaseMessagingService firebaseMessagingService;
+
     // In-memory active devices and metadata caches
     private final Map<String, Map<String, Object>> activeDevices = new ConcurrentHashMap<>();
     private final Map<String, DeviceMetadata> deviceMetadataCache = new ConcurrentHashMap<>();
+
+    // Server-side speed limit threshold (default 100.0 km/h)
+    private volatile double speedLimitThreshold = 125.0;
+
+    // 5-minute cooldown per vehicle: maps deviceId -> timestamp (ms) of last overspeed notification
+    private final Map<String, Long> lastOverspeedNotificationTimes = new ConcurrentHashMap<>();
+    private static final long OVERSPEED_COOLDOWN_MS = 5 * 60 * 1000L; // 5 minutes
 
     // In-memory active user sessions
     private final Map<String, User> tokenToUser = new ConcurrentHashMap<>();
@@ -286,10 +296,66 @@ public class GpsDeviceService {
                 deviceHistoryRepository.save(history);
             }
 
+            // Check for overspeed condition and broadcast notification if needed (max once per 5 min per vehicle)
+            checkAndSendOverspeedNotification(deviceId, speed, lat, lon, timeStr);
+
             // Always broadcast (it will be filtered by broadcastLocation method)
             broadcastLocation(devData);
         } catch (Exception e) {
             log.error("Failed to save location data to DB", e);
+        }
+    }
+
+    public double getSpeedLimitThreshold() {
+        return speedLimitThreshold;
+    }
+
+    public void setSpeedLimitThreshold(double limit) {
+        if (limit > 0) {
+            this.speedLimitThreshold = limit;
+            log.info("Server speed limit threshold updated to: {} km/h", limit);
+        }
+    }
+
+    private void checkAndSendOverspeedNotification(String deviceId, double speed, double lat, double lon, String timeStr) {
+        double effectiveLimit = speedLimitThreshold;
+        DeviceMetadata meta = deviceMetadataCache.get(deviceId);
+        String displayName = (meta != null && meta.getName() != null && !meta.getName().trim().isEmpty())
+                ? meta.getName()
+                : "Device " + deviceId;
+
+        if (speed > effectiveLimit) {
+            long now = System.currentTimeMillis();
+            Long lastAlertTime = lastOverspeedNotificationTimes.get(deviceId);
+
+            // Send notification only if at least 5 minutes have elapsed since the last overspeed notification for this car
+            if (lastAlertTime == null || (now - lastAlertTime) >= OVERSPEED_COOLDOWN_MS) {
+                lastOverspeedNotificationTimes.put(deviceId, now);
+
+                Map<String, Object> alertData = new HashMap<>();
+                alertData.put("id", deviceId + "_" + now);
+                alertData.put("deviceId", deviceId);
+                alertData.put("deviceName", displayName);
+                alertData.put("speed", speed);
+                alertData.put("limit", effectiveLimit);
+                alertData.put("latitude", lat);
+                alertData.put("longitude", lon);
+                alertData.put("time", timeStr);
+                alertData.put("timestamp", now);
+
+                Map<String, Object> alertMsg = new HashMap<>();
+                alertMsg.put("type", "overspeed_notification");
+                alertMsg.put("data", alertData);
+
+                // 1. Broadcast over WebSocket to connected web/mobile sessions
+                broadcastMessage(alertMsg);
+
+                // 2. Dispatch Push Notification to topic 'speeLimit' via Firebase Admin SDK
+                firebaseMessagingService.sendOverspeedNotification(displayName, deviceId, speed, effectiveLimit, lat, lon);
+
+                log.warn("[SERVER OVERSPEED NOTIFICATION] Vehicle '{}' (ID: {}) exceeded speed limit with {} km/h (Limit: {} km/h). Cooldown: 5 min.",
+                        displayName, deviceId, speed, effectiveLimit);
+            }
         }
     }
 

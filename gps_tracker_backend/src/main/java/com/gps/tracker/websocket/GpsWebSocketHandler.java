@@ -118,6 +118,9 @@ public class GpsWebSocketHandler extends TextWebSocketHandler {
                 case "toggle_device_enabled":
                     handleToggleDeviceEnabled(session, request, userRole);
                     break;
+                case "set_speed_limit":
+                    handleSetSpeedLimit(session, request, userRole);
+                    break;
                 case "fetch_devices":
                     gpsDeviceService.sendInitialState(session, token);
                     break;
@@ -126,6 +129,30 @@ public class GpsWebSocketHandler extends TextWebSocketHandler {
             }
         } catch (Exception e) {
             log.error("Error handling WebSocket text message", e);
+        }
+    }
+
+    private void handleSetSpeedLimit(WebSocketSession session, Map<String, Object> request, String userRole) throws IOException {
+        if (!"admin".equals(userRole)) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("type", "error");
+            response.put("message", "Unauthorized: Only admins can change the speed limit.");
+            sendResponse(session, response);
+            return;
+        }
+
+        Object limitObj = request.get("limit");
+        if (limitObj != null) {
+            try {
+                double limit = Double.parseDouble(limitObj.toString());
+                gpsDeviceService.setSpeedLimitThreshold(limit);
+                Map<String, Object> response = new HashMap<>();
+                response.put("type", "speed_limit_updated");
+                response.put("limit", limit);
+                sendResponse(session, response);
+            } catch (NumberFormatException e) {
+                log.error("Invalid speed limit format: {}", limitObj);
+            }
         }
     }
 

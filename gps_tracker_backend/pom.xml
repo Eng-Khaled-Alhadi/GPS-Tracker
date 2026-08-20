@@ -48,6 +48,11 @@
             <artifactId>netty-all</artifactId>
             <version>4.1.100.Final</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.3.0</version>
+        </dependency>
     </dependencies>
 
     <build>
