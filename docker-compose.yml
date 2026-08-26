@@ -51,14 +51,11 @@ services:
     container_name: gps_web
 
     restart: unless-stopped
-    ports:
-      - "80:80"           # HTTP (Redirect to HTTPS & ACME challenge)
-      - "443:443"         # HTTPS (Web Dashboard + Secure WebSocket WSS)
-    volumes:
-      - ./ssl:/etc/nginx/ssl:ro
-      - ./certbot/www:/var/www/certbot:ro
+    expose:
+      - "80"               # internal only - edge-nginx reverse proxies to this
     networks:
-      - gps_network
+      - gps_network         # to reach gps-backend for /ws and /api
+      - edge_network        # to be reached by the shared edge-nginx
 
 
 volumes:
@@ -68,4 +65,7 @@ volumes:
 networks:
   gps_network:
     driver: bridge
+  edge_network:
+    name: edge_network
+    external: true         # created once on the host: docker network create edge_network
 
