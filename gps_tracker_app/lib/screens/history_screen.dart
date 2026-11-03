@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../map_config.dart';
 
 class HistoryScreen extends StatefulWidget {
   final String serverAddress;
@@ -269,11 +270,7 @@ class _HistoryScreenState extends State<HistoryScreen>
               initialZoom: 12.0,
             ),
             children: [
-              TileLayer(
-                urlTemplate:
-                    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                subdomains: const ['a', 'b', 'c', 'd'],
-              ),
+              cartoDarkTileLayer(),
               if (_historyRoutePoints.isNotEmpty) ...[
                 PolylineLayer(
                   polylines: [

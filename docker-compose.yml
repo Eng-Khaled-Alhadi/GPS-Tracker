@@ -48,6 +48,7 @@ services:
       dockerfile: Dockerfile
       args:
         SERVER_HOST: ${SERVER_HOST:-176.45.55.56}
+        CARTO_API_KEY: ${CARTO_API_KEY:-}
     container_name: gps_web
 
     restart: unless-stopped

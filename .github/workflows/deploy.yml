@@ -41,6 +41,7 @@ jobs:
 
             echo "🐳 Rebuilding and restarting Docker containers with SERVER_HOST..."
             export SERVER_HOST="${{ secrets.SERVER_HOST }}"
+            export CARTO_API_KEY="${{ secrets.CARTO_API_KEY }}"
             docker compose up -d --build --remove-orphans
 
             echo "🧹 Cleaning up unused Docker images..."

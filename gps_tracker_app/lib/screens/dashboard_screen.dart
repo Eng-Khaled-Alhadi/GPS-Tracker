@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import '../map_config.dart';
 import '../models/device.dart';
 import '../providers/gps_provider.dart';
 
@@ -761,11 +762,7 @@ class _GPSDashboardState extends State<GPSDashboard>
               initialZoom: 13.0,
             ),
             children: [
-              TileLayer(
-                urlTemplate:
-                    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                subdomains: const ['a', 'b', 'c', 'd'],
-              ),
+              cartoDarkTileLayer(),
               if (selectedDevice != null && selectedDevice.history.length > 1)
                 PolylineLayer(
                   polylines: [

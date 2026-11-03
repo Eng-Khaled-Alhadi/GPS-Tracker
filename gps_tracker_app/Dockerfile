@@ -5,6 +5,8 @@ WORKDIR /app
 # Build arguments for dynamic server host
 ARG SERVER_HOST=176.45.55.56
 ENV SERVER_HOST=$SERVER_HOST
+# CARTO basemaps API key (passed from the CARTO_API_KEY GitHub secret)
+ARG CARTO_API_KEY=
 
 # Enable web support & fetch dependencies
 RUN flutter config --enable-web
@@ -13,7 +15,7 @@ RUN flutter pub get
 
 # Copy all source files and build for web
 COPY . .
-RUN flutter build web --release --dart-define=SERVER_HOST=$SERVER_HOST
+RUN flutter build web --release --dart-define=SERVER_HOST=$SERVER_HOST --dart-define=CARTO_API_KEY=$CARTO_API_KEY
 
 
 # Stage 2: Serve Flutter Web with Nginx
