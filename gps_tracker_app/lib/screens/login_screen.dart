@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../net/ws_connect.dart';
 import '../providers/gps_provider.dart';
 import 'main_navigation_screen.dart';
 
@@ -44,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final uri = Uri.parse(defaultAddress);
-      channel = WebSocketChannel.connect(uri);
+      channel = openWebSocket(uri);
 
       // Set timeout for handshake
       final completer = Completer<Map<String, dynamic>>();
@@ -71,6 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         },
       );
+
+      // Fail fast with the real reason if the handshake is rejected
+      await channel.ready.timeout(const Duration(seconds: 10));
 
       // Send login request
       channel.sink.add(

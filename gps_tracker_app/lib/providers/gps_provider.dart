@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../net/ws_connect.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/device.dart';
 import '../models/overspeed_alert.dart';
@@ -40,12 +41,8 @@ String get defaultAddress {
     return '$protocol://${uri.host}$portStr/ws';
   }
 
-  // Non-web (Mobile / Desktop)
-  if (kDebugMode) {
-    return 'ws://localhost:8081/ws';
-  }
-
-  // Production domain
+  // Non-web (Mobile / Desktop): localhost would point at the device itself,
+  // so use production unless SERVER_HOST is passed via --dart-define.
   return 'wss://tracking.qutma.com/ws';
 }
 
@@ -242,7 +239,7 @@ class GPSProvider extends ChangeNotifier {
     try {
       final tokenQuery = _token.isNotEmpty ? '?token=$_token' : '';
       final uri = Uri.parse('$_serverAddress$tokenQuery');
-      _channel = WebSocketChannel.connect(uri);
+      _channel = openWebSocket(uri);
 
       _channel!.stream.listen(
         (message) => _handleIncomingMessage(message),

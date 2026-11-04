@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import '../net/ws_connect.dart';
 import '../map_config.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -56,7 +57,7 @@ class _HistoryScreenState extends State<HistoryScreen>
   void _connectWebSocket() {
     try {
       final uri = Uri.parse(widget.serverAddress);
-      _channel = WebSocketChannel.connect(uri);
+      _channel = openWebSocket(uri);
 
       _isConnected = true;
       bool _hasRequestedDevices = false;
